@@ -12,7 +12,7 @@ pluginManagement {
     }
     resolutionStrategy {
         eachPlugin {
-            if (requested.id.namespace == "me.sigptr.rust-android") {
+            if (requested.id.namespace == "me.sigptr") {
                 useModule("me.sigptr.rust-android:rust-android:+")
             }
         }
