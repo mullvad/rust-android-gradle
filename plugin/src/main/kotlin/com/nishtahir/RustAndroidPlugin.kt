@@ -6,6 +6,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Sync
 import org.gradle.util.GradleVersion
 import java.io.File
 import java.util.Properties
@@ -261,7 +262,7 @@ open class RustAndroidPlugin : Plugin<Project> {
         }
 
         // Fish linker wrapper scripts from our Java resources.
-        val generateLinkerWrapper = rootProject.tasks.maybeCreate("generateLinkerWrapper", GenerateLinkerWrapperTask::class.java).apply {
+        val generateLinkerWrapper = rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
             group = RUST_TASK_GROUP
             description = "Generate shared linker wrapper script"
         }
@@ -275,13 +276,8 @@ open class RustAndroidPlugin : Plugin<Project> {
             eachFile {
                 it.path = it.path.replaceFirst("com/nishtahir", "")
             }
-            if (GradleVersion.current() >= GradleVersion.version("8.3")) {
-                filePermissions {
-                    it.unix("755")
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                fileMode = "0755".toInt(8)
+            filePermissions {
+                it.unix("755")
             }
             includeEmptyDirs = false
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
