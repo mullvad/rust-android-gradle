@@ -139,12 +139,12 @@ abstract class CargoBuildTask : DefaultTask() {
                     null -> {}
                 }
 
-                if (cargoExtension.profile != "debug") {
-                    // Cargo is rigid: it accepts "--release" for release (and
-                    // nothing for dev).  This is a cheap way of allowing only
-                    // two values.
-                    theCommandLine.add("--${cargoExtension.profile}")
+                when (cargoExtension.profile) {
+                    "debug" -> {} // debug is the default
+                    "release" -> theCommandLine.add("--release")
+                    else -> theCommandLine.add("--profile=${cargoExtension.profile}")
                 }
+
                 if (toolchain.target != defaultTargetTriple) {
                     // Only providing --target for the non-default targets means desktop builds
                     // can share the build cache with `cargo build`/`cargo test`/etc invocations,
@@ -234,11 +234,10 @@ abstract class CargoBuildTask : DefaultTask() {
                     environment("RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
                             File(buildDir, "linker-wrapper/linker-wrapper.py").path)
                     environment("RUST_ANDROID_GRADLE_CC", cc)
-                    if (cargoExtension.generateBuildId) {
-                        environment("RUST_ANDROID_GRADLE_CC_LINK_ARG", "-Wl,--build-id,-soname,lib${cargoExtension.libname!!}.so")
-                    } else {
-                        environment("RUST_ANDROID_GRADLE_CC_LINK_ARG", "-Wl,-soname,lib${cargoExtension.libname!!}.so")
-                    }
+                    environment("RUST_ANDROID_GRADLE_CC_LINK_ARG", buildString {
+                        append("-Wl,-z,max-page-size=16384,-soname,lib${cargoExtension.libname!!}.so")
+                        if (cargoExtension.generateBuildId) append(",--build-id")
+                    })
                 }
 
                 cargoExtension.extraCargoBuildArguments?.let {
