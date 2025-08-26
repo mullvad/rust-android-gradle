@@ -28,39 +28,6 @@ data class VersionNumber(
     val qualifier: String,
     private val scheme: Scheme
 ): Comparable<VersionNumber> {
-    companion object {
-        private val DEFAULT_SCHEME = object : AbstractScheme(3) {
-            override fun format(versionNumber: VersionNumber): String =
-                String.format(
-                    "%d.%d.%d%s",
-                    versionNumber.major,
-                    versionNumber.minor,
-                    versionNumber.micro,
-                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
-                )
-        }
-        private val PATCH_SCHEME = object : AbstractScheme(4) {
-            override fun format(versionNumber: VersionNumber): String =
-                String.format(
-                    "%d.%d.%d.%d%s",
-                    versionNumber.major,
-                    versionNumber.minor,
-                    versionNumber.micro,
-                    versionNumber.patch,
-                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
-                )
-        }
-        val UNKNOWN: VersionNumber = version(0)
-
-        fun version(major: Int) = version(major, 0)
-        fun version(major: Int, minor: Int) = VersionNumber(major, minor, 0, 0, "", DEFAULT_SCHEME)
-
-        fun scheme(): Scheme = DEFAULT_SCHEME
-        fun withPatchNumber(): Scheme = PATCH_SCHEME
-
-        fun parse(versionString: String) = DEFAULT_SCHEME.parse(versionString)
-    }
-
     constructor(major: Int, minor: Int, micro: Int, qualifier: String) :
             this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME)
 
@@ -156,5 +123,37 @@ data class VersionNumber(
         fun isEnd(): Boolean = pos == str.length
         fun skipSeparator() { pos += 1 }
         fun remainder(): String = str.substring(pos..<str.length)
+    }
+    companion object {
+        private val DEFAULT_SCHEME = object : AbstractScheme(3) {
+            override fun format(versionNumber: VersionNumber): String =
+                String.format(
+                    "%d.%d.%d%s",
+                    versionNumber.major,
+                    versionNumber.minor,
+                    versionNumber.micro,
+                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
+                )
+        }
+        private val PATCH_SCHEME = object : AbstractScheme(4) {
+            override fun format(versionNumber: VersionNumber): String =
+                String.format(
+                    "%d.%d.%d.%d%s",
+                    versionNumber.major,
+                    versionNumber.minor,
+                    versionNumber.micro,
+                    versionNumber.patch,
+                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
+                )
+        }
+        val UNKNOWN: VersionNumber = version(0)
+
+        fun version(major: Int) = version(major, 0)
+        fun version(major: Int, minor: Int) = VersionNumber(major, minor, 0, 0, "", DEFAULT_SCHEME)
+
+        fun scheme(): Scheme = DEFAULT_SCHEME
+        fun withPatchNumber(): Scheme = PATCH_SCHEME
+
+        fun parse(versionString: String) = DEFAULT_SCHEME.parse(versionString)
     }
 }

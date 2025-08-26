@@ -4,7 +4,7 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.process.ExecSpec
 import java.io.File
-import java.util.*
+import java.util.Properties
 
 sealed class Features {
     class All() : Features()
@@ -15,18 +15,14 @@ sealed class Features {
 }
 
 @Suppress("unused")
-data class FeatureSpec(var features: Features? = null) {
-    fun all() {
-        this.features = Features.All()
-    }
+data class FeatureSpec(val features: Features? = null) {
+    fun all(): FeatureSpec = FeatureSpec(Features.All())
 
-    fun defaultAnd(vararg featureSet: String) {
-        this.features = Features.DefaultAnd(featureSet.toSet())
-    }
+    fun defaultAnd(vararg featureSet: String): FeatureSpec =
+        FeatureSpec(Features.DefaultAnd(featureSet.toSet()))
 
-    fun noDefaultBut(vararg featureSet: String) {
-        this.features = Features.NoDefaultBut(featureSet.toSet())
-    }
+    fun noDefaultBut(vararg featureSet: String): FeatureSpec =
+        FeatureSpec(Features.NoDefaultBut(featureSet.toSet()))
 }
 
 // `CargoExtension` is documented in README.md.
@@ -72,7 +68,8 @@ open class CargoExtension {
                 return File(globalDir).absoluteFile
             }
 
-            val defaultDir = File(System.getProperty("java.io.tmpdir"), "rust-android-ndk-toolchains")
+            val defaultDir =
+                File(System.getProperty("java.io.tmpdir"), "rust-android-ndk-toolchains")
             return defaultDir.absoluteFile
         }
 
