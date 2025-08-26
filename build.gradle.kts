@@ -3,7 +3,5 @@ plugins {
     alias(libs.plugins.version.catalog.update)
 }
 
-task("clean", Delete::class) {
-    delete(rootProject.layout.buildDirectory)
-}
+tasks.register("clean", Delete::class, { delete(rootProject.layout.buildDirectory) })
 
