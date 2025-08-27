@@ -50,8 +50,8 @@ open class CargoExtension {
     var featureSpec: FeatureSpec = FeatureSpec()
 
     @Suppress("unused")
-    fun features(action: Action<FeatureSpec>) {
-        action.execute(featureSpec)
+    fun features(action: FeatureSpec.() -> FeatureSpec) {
+        featureSpec = action(FeatureSpec())
     }
 
     val toolchainDirectory: File
