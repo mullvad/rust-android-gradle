@@ -63,7 +63,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }
 
 val generatedResources = layout.buildDirectory.dir("generated-resources/main")
@@ -160,10 +160,11 @@ sourceSets {
 fun androidTestTaskName(androidVersion: String) = "testAndroid${normalizeVersion(androidVersion)}"
 fun normalizeVersion(version: String) = version.replace("[.\\-]".toRegex(), "_")
 
+@Suppress("UseRequire")
 fun jdkVersionFor(agpVersion: String) = JavaLanguageVersion.of(
     if (agpVersion.split('.')[0].toInt() >= 8) {
         17
     } else {
-        11
+        throw IllegalArgumentException("AGP version must be >=8")
     }
 )
