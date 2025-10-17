@@ -3,7 +3,6 @@ package com.nishtahir
 import com.android.build.gradle.*
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -11,6 +10,9 @@ import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
+import org.gradle.api.Task
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 
 abstract class CargoBuildTask : DefaultTask() {
     @Input
@@ -19,20 +21,41 @@ abstract class CargoBuildTask : DefaultTask() {
     @Input
     val ndk = property<Ndk>()
 
+    @Input
+    val rootBuildDirectory = property<File>()
+
+    @Input
+    val projectProjectDir = property<File>()
+
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
+
+    private val buildDirectory = projectLayout.buildDirectory.asFile
+
     @get:Inject
     abstract val execOperations: ExecOperations
+    @get:Inject abstract val fs: FileSystemOperations
 
     @Suppress("unused")
     @TaskAction
-    fun build() = with(project) {
+    fun build() {
         extensions[CargoExtension::class].apply {
             val toolchain by toolchain
             val ndk by ndk
 
             project.plugins.all {
                 when (it) {
-                    is AppPlugin -> buildProjectForTarget<AppExtension>(project, toolchain, ndk, this)
-                    is LibraryPlugin -> buildProjectForTarget<LibraryExtension>(project, toolchain, ndk, this)
+                    is AppPlugin -> buildProjectForTarget<AppExtension>(
+                        toolchain,
+                        ndk,
+                        this,
+                    )
+
+                    is LibraryPlugin -> buildProjectForTarget<LibraryExtension>(
+                        toolchain,
+                        ndk,
+                        this,
+                    )
                 }
             }
             // CARGO_TARGET_DIR can be used to force the use of a global, shared target directory
@@ -44,26 +67,29 @@ abstract class CargoBuildTask : DefaultTask() {
             // day if it turns out we're wrong about that.
             val target =
                 getProperty("rust.cargoTargetDir", "CARGO_TARGET_DIR")
-                ?: targetDirectory
-                ?: "${module!!}/target"
+                    ?: targetDirectory
+                    ?: "${module!!}/target"
 
-            val defaultTargetTriple = getDefaultTargetTriple(project, execOperations, rustcCommand)
+            val defaultTargetTriple =
+                getDefaultTargetTriple(this@CargoBuildTask, execOperations, rustcCommand)
 
-            var cargoOutputDir = File(if (toolchain.target == defaultTargetTriple) {
-                "${target}/${profile}"
-            } else {
-                "${target}/${toolchain.target}/${profile}"
-            })
+            var cargoOutputDir = File(
+                if (toolchain.target == defaultTargetTriple) {
+                    "${target}/${profile}"
+                } else {
+                    "${target}/${toolchain.target}/${profile}"
+                },
+            )
             if (!cargoOutputDir.isAbsolute) {
-                cargoOutputDir = File(project.project.projectDir, cargoOutputDir.path)
+                cargoOutputDir = File(projectProjectDir.get(), cargoOutputDir.path)
             }
             cargoOutputDir = cargoOutputDir.canonicalFile
 
-            val buildDir by buildDirectory()
+            val buildDir by buildDirectory
             val intoDir = File(buildDir, "rustJniLibs/${toolchain.folder}")
             intoDir.mkdirs()
 
-            copy { spec ->
+            fs.copy { spec ->
                 spec.from(cargoOutputDir)
                 spec.into(intoDir)
 
@@ -82,9 +108,14 @@ abstract class CargoBuildTask : DefaultTask() {
         }
     }
 
-    private inline fun <reified T : BaseExtension> buildProjectForTarget(project: Project, toolchain: Toolchain, ndk: Ndk, cargoExtension: CargoExtension) {
+    private inline fun <reified T : BaseExtension> buildProjectForTarget(
+        toolchain: Toolchain,
+        ndk: Ndk,
+        cargoExtension: CargoExtension
+    ) {
         val apiLevel = cargoExtension.apiLevels[toolchain.platform]!!
-        val defaultTargetTriple = getDefaultTargetTriple(project, execOperations, cargoExtension.rustcCommand)
+        val defaultTargetTriple =
+            getDefaultTargetTriple(this@CargoBuildTask, execOperations, cargoExtension.rustcCommand)
 
         execOperations.exec { spec ->
             with(spec) {
@@ -155,28 +186,30 @@ abstract class CargoBuildTask : DefaultTask() {
                 // Target-specific environment configuration, passed through to
                 // the underlying `cargo build` invocation.
                 val toolchainTarget = toolchain.target.uppercase().replace('-', '_')
-                val prefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
 
-                // For ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_x_KEY=VALUE, set KEY=VALUE.
-                project.logger.info("Passing through project properties with prefix '${prefix}' (environment variables with prefix 'ORG_GRADLE_PROJECT_${prefix}'")
-                project.properties.forEach { (key, value) ->
-                     if (key.startsWith(prefix)) {
-                         val realKey = key.substring(prefix.length)
-                         project.logger.debug(
-                             "Passing through environment variable '{}' as '{}={}'",
-                             key,
-                             realKey,
-                             value
-                         )
-                         environment(realKey, value)
-                     }
-                }
+                // TODO REMOVE PROJECT USAGE
+//                val prefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
+//
+//                // For ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_x_KEY=VALUE, set KEY=VALUE.
+//                task.logger.info("Passing through project properties with prefix '${prefix}' (environment variables with prefix 'ORG_GRADLE_PROJECT_${prefix}'")
+//                project.properties.forEach { (key, value) ->
+//                    if (key.startsWith(prefix)) {
+//                        val realKey = key.substring(prefix.length)
+//                        project.logger.debug(
+//                            "Passing through environment variable '{}' as '{}={}'",
+//                            key,
+//                            realKey,
+//                            value,
+//                        )
+//                        environment(realKey, value)
+//                    }
+//                }
 
                 // Cross-compiling to Android requires toolchain massaging.
                 if (toolchain.type != ToolchainType.DESKTOP) {
                     val ndkPath = ndk.path
                     val ndkVersionMajor = ndk.versionMajor
-                    val buildDir by project.rootBuildDirectory()
+                    val buildDir = rootBuildDirectory.get()
 
                     val toolchainDirectory = if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
                         environment("CARGO_NDK_MAJOR_VERSION", ndkVersionMajor)
@@ -254,15 +287,20 @@ abstract class CargoBuildTask : DefaultTask() {
 }
 
 // This can't be private/internal as it's called from `buildProjectForTarget`.
-fun getDefaultTargetTriple(project: Project, execOperations: ExecOperations, rustc: String): String? {
+fun getDefaultTargetTriple(
+    task: Task,
+    execOperations: ExecOperations,
+    rustc: String
+): String? {
     val stdout = ByteArrayOutputStream()
     val result = execOperations.exec { spec ->
         spec.standardOutput = stdout
         spec.commandLine = listOf(rustc, "--version", "--verbose")
     }
     if (result.exitValue != 0) {
-        project.logger.warn(
-            "Failed to get default target triple from rustc (exit code: ${result.exitValue})")
+        task.logger.warn(
+            "Failed to get default target triple from rustc (exit code: ${result.exitValue})",
+        )
         return null
     }
     val output = stdout.toString()
@@ -277,9 +315,9 @@ fun getDefaultTargetTriple(project: Project, execOperations: ExecOperations, rus
         ?.trim()
 
     if (triple == null) {
-        project.logger.warn("Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)")
+        task.logger.warn("Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)")
     } else {
-        project.logger.info("Default rust target triple: $triple")
+        task.logger.info("Default rust target triple: $triple")
     }
     return triple
 }

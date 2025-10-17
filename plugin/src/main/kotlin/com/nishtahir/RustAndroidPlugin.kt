@@ -308,6 +308,9 @@ open class RustAndroidPlugin : Plugin<Project> {
                 group = RUST_TASK_GROUP
                 description = "Build library ($target)"
                 toolchain.set(theToolchain)
+                projectProjectDir.set(project.project.projectDir)
+                rootBuildDirectory.set(rootBuildDirectory())
+
                 this.ndk.set(ndk)
             }
 

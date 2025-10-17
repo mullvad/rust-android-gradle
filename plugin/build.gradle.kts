@@ -69,27 +69,27 @@ kotlin {
 val generatedResources = layout.buildDirectory.dir("generated-resources/main")
 val generatedBuildResources = layout.buildDirectory.dir("build-resources")
 tasks {
-    val genVersionsTask = register("generateVersions") {
-        val outputFile = generatedResources.map { it.file("versions.json").asFile }
-        inputs.property("version", version)
-        inputs.property("supportedVersions", supportedVersions)
-        outputs.dir(generatedResources)
-        doLast {
-            outputFile.get().writeText(
-                JsonBuilder(
-                    mapOf(
-                        "version" to version,
-                        "supportedVersions" to supportedVersions
-                    )
-                ).toPrettyString()
-            )
-        }
-    }
-
+//    val genVersionsTask = register("generateVersions") {
+//        val outputFile = generatedResources.map { it.file("versions.json").asFile }
+//        inputs.property("version", version)
+//        inputs.property("supportedVersions", supportedVersions)
+//        outputs.dir(generatedResources)
+//        doLast {
+//            outputFile.get().writeText(
+//                JsonBuilder(
+//                    mapOf(
+//                        "version" to version,
+//                        "supportedVersions" to supportedVersions
+//                    )
+//                ).toPrettyString()
+//            )
+//        }
+//    }
+//
     sourceSets {
         main {
             output.dir(
-                mapOf("builtBy" to genVersionsTask),
+//                mapOf("builtBy" to genVersionsTask),
                 generatedResources
             )
         }
