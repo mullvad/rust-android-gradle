@@ -8,6 +8,7 @@ import org.gradle.api.provider.Provider
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import org.gradle.api.provider.ListProperty
 
 operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T = getByType(type.java)
 
@@ -18,5 +19,7 @@ fun Project.rootBuildDirectory(): Provider<File> = rootProject.layout.buildDirec
 fun Project.buildDirectory(): Provider<File> = layout.buildDirectory.asFile
 
 inline fun<reified T : Any> DefaultTask.property(): Property<T> = project.objects.property(T::class.java)
+
+inline fun<reified T : Any> DefaultTask.listProperty(): ListProperty<T> = project.objects.listProperty(T::class.java)
 
 fun CharSequence.capitalized() = toString().replaceFirstChar { if (it.isLowerCase()) it.uppercase() else it.toString() }
