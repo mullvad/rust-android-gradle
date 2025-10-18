@@ -11,6 +11,7 @@ import org.gradle.util.GradleVersion
 import java.io.File
 import java.util.Properties
 import kotlin.text.get
+import org.gradle.internal.impldep.org.bouncycastle.pqc.jcajce.provider.lms.LMSSignatureSpi
 
 const val RUST_TASK_GROUP = "rust"
 
@@ -378,6 +379,8 @@ open class RustAndroidPlugin : Plugin<Project> {
                     verbose.set(cargoExtension.verbose)
                     featureSpec.set(cargoExtension.featureSpec)
                     toolchainDirectory.set(cargoExtension.toolchainDirectory)
+                    generateBuildId.set(cargoExtension.generateBuildId)
+                    pythonCommand.set(cargoExtension.pythonCommand)
 
                     this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
                     module.set(cargoExtension.module)

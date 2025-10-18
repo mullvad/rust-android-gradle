@@ -71,6 +71,12 @@ abstract class CargoBuildTask : DefaultTask() {
     @Input
     val toolchainDirectory = property<File>()
 
+    @Input
+    val generateBuildId = property<Boolean>()
+
+    @Input
+    val pythonCommand = property<String>()
+
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
@@ -296,23 +302,23 @@ abstract class CargoBuildTask : DefaultTask() {
 //                        true,
 //                    )
 //                    if (shouldConfigure) {
-//                        environment("CLANG_PATH", cc)
+                        environment("CLANG_PATH", cc)
 //                    }
 
                     // Configure our linker wrapper.
-//                    environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", cargoExtension.pythonCommand)
+                    environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
                     environment(
                         "RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
                         File(buildDir, "linker-wrapper/linker-wrapper.py").path,
                     )
                     environment("RUST_ANDROID_GRADLE_CC", cc)
-//                    environment(
-//                        "RUST_ANDROID_GRADLE_CC_LINK_ARG",
-//                        buildString {
-//                            append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()!!}.so")
-//                            if (cargoExtension.generateBuildId) append(",--build-id")
-//                        },
-//                    )
+                    environment(
+                        "RUST_ANDROID_GRADLE_CC_LINK_ARG",
+                        buildString {
+                            append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()!!}.so")
+                            if (generateBuildId.get()) append(",--build-id")
+                        },
+                    )
                 }
 //
 //                cargoExtension.extraCargoBuildArguments?.let {
