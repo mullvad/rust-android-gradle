@@ -373,7 +373,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                     rustcCommand.set(cargoExtension.rustcCommand)
                     cargoCommand.set(cargoExtension.cargoCommand)
                     profile.set(cargoExtension.profile)
-                    targetIncludes.set(cargoExtension.targetIncludes)
+                    targetIncludes.set(cargoExtension.targetIncludes?.toList())
                     libname.set(cargoExtension.libname)
                     rustupChannel.set(cargoExtension.rustupChannel)
                     verbose.set(cargoExtension.verbose)
@@ -381,6 +381,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                     toolchainDirectory.set(cargoExtension.toolchainDirectory)
                     generateBuildId.set(cargoExtension.generateBuildId)
                     pythonCommand.set(cargoExtension.pythonCommand)
+                    extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
 
                     this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
                     module.set(cargoExtension.module)

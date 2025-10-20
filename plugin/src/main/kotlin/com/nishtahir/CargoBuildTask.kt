@@ -15,6 +15,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Optional
 
@@ -47,7 +48,7 @@ abstract class CargoBuildTask : DefaultTask() {
     val profile = property<String>()
 
     @Input
-    val targetIncludes = property<Array<String>>()
+    val targetIncludes = listProperty<String>()
 
     @Input
     val libname = property<String>()
@@ -77,6 +78,9 @@ abstract class CargoBuildTask : DefaultTask() {
     @Input
     val pythonCommand = property<String>()
 
+    @Input
+    val extraCargoBuildArguments = listProperty<String>()
+
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
@@ -90,7 +94,7 @@ abstract class CargoBuildTask : DefaultTask() {
         val toolchain by toolchain
         val ndk by ndk
 
-        buildProjectForTarget<AppExtension>(
+        buildProjectForTarget<LibraryExtension>(
             toolchain,
             ndk,
         )
@@ -320,10 +324,10 @@ abstract class CargoBuildTask : DefaultTask() {
                         },
                     )
                 }
-//
-//                cargoExtension.extraCargoBuildArguments?.let {
-//                    theCommandLine.addAll(it)
-//                }
+
+                extraCargoBuildArguments.get().let {
+                    theCommandLine.addAll(it)
+                }
 
                 commandLine = theCommandLine
             }
