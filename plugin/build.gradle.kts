@@ -1,6 +1,7 @@
 import groovy.json.JsonBuilder
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.internal.impldep.com.esotericsoftware.minlog.Log
 
 plugins {
     `maven-publish`
@@ -71,18 +72,23 @@ val generatedBuildResources = layout.buildDirectory.dir("build-resources")
 
 tasks {
     val genVersionsTask = register("generateVersions") {
-        val outputFile = generatedResources.map { it.file("versions.json").asFile }
+        println("Generating versions")
+        println("Generated Resources map: ${generatedResources.get()}")
+        val outputFile = generatedResources.map {
+            it.asFile.mkdirs()
+            it.file("versions.json").asFile
+        }
         inputs.property("version", version)
         inputs.property("supportedVersions", supportedVersions)
         outputs.dir(generatedResources)
-            outputFile.get().writeText(
-                JsonBuilder(
-                    mapOf(
-                        "version" to version,
-                        "supportedVersions" to supportedVersions,
-                    ),
-                ).toPrettyString(),
-            )
+        outputFile.get().writeText(
+            JsonBuilder(
+                mapOf(
+                    "version" to version,
+                    "supportedVersions" to supportedVersions,
+                ),
+            ).toPrettyString(),
+        )
     }
 
     sourceSets {
@@ -95,15 +101,19 @@ tasks {
     }
 
     register("generateTestTasksJson") {
-        val outputFile = generatedBuildResources.map { it.file("androidTestTasks.json").asFile }
+        val outputFile = generatedBuildResources.map {
+            it.asFile.mkdirs()
+            it.file("androidTestTasks.json").asFile
+        }
         inputs.property("supportedVersions", supportedVersions)
         outputs.dir(generatedBuildResources)
-            outputFile
-                .get()
-                .writeText(
-                    JsonBuilder(supportedVersions.keys.map { androidTestTaskName(it) }.toList())
-                        .toString(),
-                )
+        outputFile.get().createNewFile()
+        outputFile
+            .get()
+            .writeText(
+                JsonBuilder(supportedVersions.keys.map { androidTestTaskName(it) }.toList())
+                    .toString(),
+            )
     }
 
     withType<Test>().configureEach {
