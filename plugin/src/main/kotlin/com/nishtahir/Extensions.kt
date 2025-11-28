@@ -9,6 +9,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 
 operator fun <T : Any> ExtensionContainer.get(type: KClass<T>): T = getByType(type.java)
 
@@ -32,6 +33,9 @@ inline fun <reified T : Any> DefaultTask.property(): Property<T> =
 
 inline fun <reified T : Any> DefaultTask.listProperty(): ListProperty<T> =
     project.objects.listProperty(T::class.java)
+
+inline fun <reified T : Any> DefaultTask.setProperty(): SetProperty<T> =
+    project.objects.setProperty(T::class.java)
 
 fun CharSequence.capitalized() =
     toString().replaceFirstChar { if (it.isLowerCase()) it.uppercase() else it.toString() }

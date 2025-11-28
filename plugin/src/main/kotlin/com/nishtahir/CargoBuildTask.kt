@@ -6,19 +6,18 @@ import java.io.File
 import javax.inject.Inject
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 
 abstract class CargoBuildTask : DefaultTask() {
-    //    @Input
-    //    val plugins = property<Array<Plugin<Any>>>()
-
     @Input val toolchain = property<Toolchain>()
 
     @Input val ndk = property<Ndk>()
@@ -53,8 +52,6 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val generateBuildId = property<Boolean>()
 
-    @Input val pythonCommand = property<String>()
-
     @Input val extraCargoBuildArguments = listProperty<String>()
 
     @get:Inject abstract val projectLayout: ProjectLayout
@@ -68,23 +65,10 @@ abstract class CargoBuildTask : DefaultTask() {
         val toolchain by toolchain
         val ndk by ndk
 
-        buildProjectForTarget<LibraryExtension>(toolchain, ndk)
-        //        plugins.get().all {
-        //            when (it) {
-        //                is AppPlugin -> buildProjectForTarget<AppExtension>(
-        //                    toolchain,
-        //                    ndk,
-        //                )
-        //
-        //                is LibraryPlugin -> buildProjectForTarget<LibraryExtension>(
-        //                    toolchain,
-        //                    ndk,
-        //                )
-        //            }
-        //        }
-
         val defaultTargetTriple =
             getDefaultTargetTriple(this@CargoBuildTask, execOperations, rustcCommand.get())
+        buildProjectForTarget(defaultTargetTriple, toolchain, ndk)
+
 
         var cargoOutputDir =
             File(
@@ -92,7 +76,7 @@ abstract class CargoBuildTask : DefaultTask() {
                     "${target.get()}/${profile.get()}"
                 } else {
                     "${target.get()}/${toolchain.target}/${profile.get()}"
-                }
+                },
             )
         if (!cargoOutputDir.isAbsolute) {
             cargoOutputDir = File(projectProjectDir.get(), cargoOutputDir.path)
@@ -109,11 +93,11 @@ abstract class CargoBuildTask : DefaultTask() {
 
             // Need to capture the value to dereference smoothly.
             val targetIncludes = targetIncludes.get()
-            if (targetIncludes != null) {
+            if (targetIncludes.isEmpty()) {
                 spec.include(targetIncludes.asIterable())
             } else {
                 // It's safe to unwrap, since we bailed at configuration time if this is unset.
-                val libname = libname.get()!!
+                val libname = libname.get()
                 spec.include("lib${libname}.so")
                 spec.include("lib${libname}.dylib")
                 spec.include("${libname}.dll")
@@ -121,18 +105,16 @@ abstract class CargoBuildTask : DefaultTask() {
         }
     }
 
-    private inline fun <reified T : BaseExtension> CargoBuildTask.buildProjectForTarget(
+    private fun CargoBuildTask.buildProjectForTarget(
+        defaultTargetTriple: String?,
         toolchain: Toolchain,
         ndk: Ndk,
     ) {
-        val defaultTargetTriple =
-            getDefaultTargetTriple(this@CargoBuildTask, execOperations, rustcCommand.get())
-
         execOperations
             .exec { spec ->
                 with(spec) {
                     standardOutput = System.out
-                    val module = File(module.get()!!)
+                    val module = File(module.get())
                     workingDir =
                         if (module.isAbsolute) {
                             module
@@ -154,7 +136,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
                     // Respect `verbose` if it is set; otherwise, log if asked to
                     // with `--info` or `--debug` from the command line.
-                    if (verbose.getOrElse(false) ?: logger.isEnabled(LogLevel.INFO)) {
+                    if (verbose.getOrElse(logger.isEnabled(LogLevel.INFO))) {
                         theCommandLine.add("--verbose")
                     }
 
@@ -255,21 +237,13 @@ abstract class CargoBuildTask : DefaultTask() {
                                 toolchainDirectory.get()
                             }
 
-                        val linkerWrapper =
-                            if (System.getProperty("os.name").startsWith("Windows")) {
-                                File(buildDir, "linker-wrapper/linker-wrapper.bat")
-                            } else {
-                                File(buildDir, "linker-wrapper/linker-wrapper.sh")
-                            }
-                        environment("CARGO_TARGET_${toolchainTarget}_LINKER", linkerWrapper.path)
-
                         val cc = File(toolchainDirectory, "${toolchain.cc(apiLevel.get())}").path
                         val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
                         val ar =
                             File(
-                                    toolchainDirectory,
-                                    "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
-                                )
+                                toolchainDirectory,
+                                "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
+                            )
                                 .path
 
                         // For build.rs in `cc` consumers: like "CC_i686-linux-android".  See
@@ -296,18 +270,12 @@ abstract class CargoBuildTask : DefaultTask() {
                         environment("CLANG_PATH", cc)
                         //                    }
 
-                        // Configure our linker wrapper.
-                        environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
-                        environment(
-                            "RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
-                            File(buildDir, "linker-wrapper/linker-wrapper.py").path,
-                        )
                         environment("RUST_ANDROID_GRADLE_CC", cc)
                         environment(
                             "RUST_ANDROID_GRADLE_CC_LINK_ARG",
                             buildString {
                                 append(
-                                    "-Wl,-z,max-page-size=16384,-soname,lib${libname.get()!!}.so"
+                                    "-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so",
                                 )
                                 if (generateBuildId.get()) append(",--build-id")
                             },
@@ -326,8 +294,11 @@ abstract class CargoBuildTask : DefaultTask() {
     }
 }
 
-// This can't be private/internal as it's called from `buildProjectForTarget`.
-fun getDefaultTargetTriple(task: Task, execOperations: ExecOperations, rustc: String): String? {
+private fun getDefaultTargetTriple(
+    task: Task,
+    execOperations: ExecOperations,
+    rustc: String
+): String? {
     val stdout = ByteArrayOutputStream()
     val result =
         execOperations.exec { spec ->
@@ -336,7 +307,7 @@ fun getDefaultTargetTriple(task: Task, execOperations: ExecOperations, rustc: St
         }
     if (result.exitValue != 0) {
         task.logger.warn(
-            "Failed to get default target triple from rustc (exit code: ${result.exitValue})"
+            "Failed to get default target triple from rustc (exit code: ${result.exitValue})",
         )
         return null
     }
@@ -355,7 +326,7 @@ fun getDefaultTargetTriple(task: Task, execOperations: ExecOperations, rustc: St
 
     if (triple == null) {
         task.logger.warn(
-            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)"
+            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)",
         )
     } else {
         task.logger.info("Default rust target triple: $triple")

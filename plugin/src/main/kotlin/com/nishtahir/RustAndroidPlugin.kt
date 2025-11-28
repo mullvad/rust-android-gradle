@@ -244,37 +244,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                     Ndk(path = it, version = ndkVersion)
                 }
 
-            // Fish linker wrapper scripts from our Java resources.
-            val generateLinkerWrapper =
-                rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
-                    group = RUST_TASK_GROUP
-                    description = "Generate shared linker wrapper script"
-                }
-
-            val rootBuildDir by rootBuildDirectory()
-            generateLinkerWrapper.apply {
-                // From https://stackoverflow.com/a/320595.
-                from(
-                    rootProject.zipTree(
-                        File(
-                                RustAndroidPlugin::class
-                                    .java
-                                    .protectionDomain
-                                    .codeSource
-                                    .location
-                                    .toURI()
-                            )
-                            .path
-                    )
-                )
-                include("**/linker-wrapper*")
-                into(File(rootBuildDir, "linker-wrapper"))
-                eachFile { it.path = it.path.replaceFirst("com/nishtahir", "") }
-                filePermissions { it.unix("755") }
-                includeEmptyDirs = false
-                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-            }
-
             val buildTask =
                 tasks.maybeCreate("cargoBuild", DefaultTask::class.java).apply {
                     group = RUST_TASK_GROUP
@@ -290,7 +259,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                     throw GradleException(
                         "Target $target is not recognized (recognized targets: ${
                             toolchains.map { it.platform }.sorted()
-                        }).  Check `local.properties` and `build.gradle`."
+                        }).  Check `local.properties` and `build.gradle`.",
                     )
                 }
 
@@ -327,7 +296,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                                     "CARGO_TARGET_DIR",
                                 )
                                     ?: cargoExtension.targetDirectory
-                                    ?: "${cargoExtension.module!!}/target"
+                                    ?: "${cargoExtension.module!!}/target",
                             )
 
                             rustcCommand.set(cargoExtension.rustcCommand)
@@ -340,17 +309,14 @@ open class RustAndroidPlugin : Plugin<Project> {
                             featureSpec.set(cargoExtension.featureSpec)
                             toolchainDirectory.set(cargoExtension.toolchainDirectory)
                             generateBuildId.set(cargoExtension.generateBuildId)
-                            pythonCommand.set(cargoExtension.pythonCommand)
                             extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
 
                             this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
                             module.set(cargoExtension.module)
-                            //                    plugins.set(project.plugins.toSet())
 
                             this.ndk.set(ndk)
                         }
 
-                targetBuildTask.dependsOn(generateLinkerWrapper)
                 buildTask.dependsOn(targetBuildTask)
             }
         }
