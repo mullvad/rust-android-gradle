@@ -14,3 +14,5 @@ crate-type = ["staticlib", "dylib"]
 default = ["foo"]
 foo = []
 bar = []
+
+[workspace]
