@@ -72,6 +72,7 @@ data class VersionNumber(
 
     private abstract class AbstractScheme(val depth: Int) : Scheme {
         override fun parse(value: String?): VersionNumber {
+            println(value)
             if (value.isNullOrEmpty()) {
                 return UNKNOWN
             }

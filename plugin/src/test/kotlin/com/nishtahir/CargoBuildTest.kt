@@ -61,7 +61,7 @@ class CargoBuildTest : FunSpec(
                 }
             }
         withData(
-            TestVersions.allCandidateTestVersions.flatMap { entry ->
+            TestVersions.allCandidateTestVersions().flatMap { entry ->
                 entry.value.map { BuildTestData(entry.key, it) }
             },
             test = test,

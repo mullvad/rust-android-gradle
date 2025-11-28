@@ -16,7 +16,7 @@ data class TargetTestData(val target: String, val location: String) : WithDataTe
 class CargoTargetTest :
     FunSpec(
         {
-            val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK
+            val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK()
             val gradleVersion = TestVersions.latestSupportedGradleVersionFor(androidVersion)
             val kotlinVersion = TestVersions.latestKotlinVersion
 

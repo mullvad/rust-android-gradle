@@ -1,17 +1,14 @@
 package com.nishtahir
 
-import com.android.build.gradle.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
-import org.gradle.api.Plugin
 import org.gradle.api.Task
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
@@ -67,8 +64,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
         val defaultTargetTriple =
             getDefaultTargetTriple(this@CargoBuildTask, execOperations, rustcCommand.get())
-        buildProjectForTarget(defaultTargetTriple, toolchain, ndk)
-
+        buildProjectForTarget(defaultTargetTriple, toolchain, ndk, projectProjectDir.get())
 
         var cargoOutputDir =
             File(
@@ -76,7 +72,7 @@ abstract class CargoBuildTask : DefaultTask() {
                     "${target.get()}/${profile.get()}"
                 } else {
                     "${target.get()}/${toolchain.target}/${profile.get()}"
-                },
+                }
             )
         if (!cargoOutputDir.isAbsolute) {
             cargoOutputDir = File(projectProjectDir.get(), cargoOutputDir.path)
@@ -109,6 +105,7 @@ abstract class CargoBuildTask : DefaultTask() {
         defaultTargetTriple: String?,
         toolchain: Toolchain,
         ndk: Ndk,
+        projectProjectDir: File,
     ) {
         execOperations
             .exec { spec ->
@@ -119,7 +116,7 @@ abstract class CargoBuildTask : DefaultTask() {
                         if (module.isAbsolute) {
                             module
                         } else {
-                            File(project.project.projectDir, module.path)
+                            File(projectProjectDir, module.path)
                         }
                     workingDir = workingDir.canonicalFile
 
@@ -241,9 +238,9 @@ abstract class CargoBuildTask : DefaultTask() {
                         val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
                         val ar =
                             File(
-                                toolchainDirectory,
-                                "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
-                            )
+                                    toolchainDirectory,
+                                    "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
+                                )
                                 .path
 
                         // For build.rs in `cc` consumers: like "CC_i686-linux-android".  See
@@ -274,9 +271,7 @@ abstract class CargoBuildTask : DefaultTask() {
                         environment(
                             "RUST_ANDROID_GRADLE_CC_LINK_ARG",
                             buildString {
-                                append(
-                                    "-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so",
-                                )
+                                append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so")
                                 if (generateBuildId.get()) append(",--build-id")
                             },
                         )
@@ -297,7 +292,7 @@ abstract class CargoBuildTask : DefaultTask() {
 private fun getDefaultTargetTriple(
     task: Task,
     execOperations: ExecOperations,
-    rustc: String
+    rustc: String,
 ): String? {
     val stdout = ByteArrayOutputStream()
     val result =
@@ -307,7 +302,7 @@ private fun getDefaultTargetTriple(
         }
     if (result.exitValue != 0) {
         task.logger.warn(
-            "Failed to get default target triple from rustc (exit code: ${result.exitValue})",
+            "Failed to get default target triple from rustc (exit code: ${result.exitValue})"
         )
         return null
     }
@@ -326,7 +321,7 @@ private fun getDefaultTargetTriple(
 
     if (triple == null) {
         task.logger.warn(
-            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)",
+            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)"
         )
     } else {
         task.logger.info("Default rust target triple: $triple")

@@ -16,7 +16,7 @@ data class NdkTestData(val ndkVersion: String) : WithDataTestName {
 class NdkVersionTest :
     FunSpec(
         {
-            val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK
+            val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK()
             val gradleVersion = TestVersions.latestSupportedGradleVersionFor(androidVersion)
             val kotlinVersion = TestVersions.latestKotlinVersion
             val target = "x86_64"
