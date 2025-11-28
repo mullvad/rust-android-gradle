@@ -2,6 +2,7 @@ package com.nishtahir
 
 import io.kotest.core.annotation.EnabledIf
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.core.spec.style.scopes.FunSpecContainerScope
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import io.kotest.matchers.should
@@ -15,53 +16,55 @@ data class BuildTestData(val android: VersionNumber, val gradle: GradleVersion) 
 }
 
 @EnabledIf(MultiVersionCondition::class)
-class CargoBuildTest :
-    FunSpec({
+class CargoBuildTest : FunSpec(
+    {
         val kotlinVersion = TestVersions.latestKotlinVersion
 
-        withData(
-            TestVersions.allCandidateTestVersions.flatMap { entry ->
-                entry.value.map { BuildTestData(entry.key, it) }
-            }
-        ) { (androidVersion, gradleVersion) ->
-            // arrange
-            val projectDir = tempDirectory()
+        val test: suspend FunSpecContainerScope.(BuildTestData) -> Unit =
+            { (androidVersion, gradleVersion): BuildTestData ->
+                // arrange
+                val projectDir = tempDirectory()
 
-            SimpleAndroidApp(
+                SimpleAndroidApp(
                     projectDir = projectDir,
                     androidVersion = androidVersion,
                     kotlinVersion = kotlinVersion,
-                )
-                .writeProject()
+                ).writeProject()
 
-            SimpleCargoProject(projectDir = projectDir, targets = listOf("x86_64")).writeProject()
+                SimpleCargoProject(
+                    projectDir = projectDir,
+                    targets = listOf("x86_64"),
+                ).writeProject()
 
-            // act
-            val buildResult =
-                RunGradleTask(
-                        gradleVersion = gradleVersion,
-                        projectDir = projectDir,
-                        taskName = "cargoBuild",
-                        arguments = listOf("--info", "--stacktrace"),
-                    )
-                    .build()
+                // act
+                val buildResult = RunGradleTask(
+                    gradleVersion = gradleVersion,
+                    projectDir = projectDir,
+                    taskName = "cargoBuild",
+                    arguments = listOf("--info", "--stacktrace"),
+                ).build()
 
-            // To ease debugging.
-            projectDir.walk().onEnter {
-                println(it)
-                true
+                // To ease debugging.
+                projectDir.walk().onEnter {
+                    println(it)
+                    true
+                }
+
+                // assert
+                buildResult.task(":app:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
+                buildResult.task(":library:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
+                File(projectDir, "app/build/rustJniLibs/android/x86_64/librust.so") should {
+                    it.exists()
+                }
+                File(projectDir, "library/build/rustJniLibs/android/x86_64/librust.so") should {
+                    it.exists()
+                }
             }
-
-            // assert
-            buildResult.task(":app:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
-            buildResult.task(":library:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
-            File(projectDir, "app/build/rustJniLibs/android/x86_64/librust.so") should
-                {
-                    it.exists()
-                }
-            File(projectDir, "library/build/rustJniLibs/android/x86_64/librust.so") should
-                {
-                    it.exists()
-                }
-        }
-    })
+        withData(
+            TestVersions.allCandidateTestVersions.flatMap { entry ->
+                entry.value.map { BuildTestData(entry.key, it) }
+            },
+            test = test,
+        )
+    },
+)
