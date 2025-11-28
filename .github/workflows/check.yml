@@ -60,7 +60,7 @@ jobs:
 
       # Use Java 21
       - name: Setup Java 21
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
@@ -104,7 +104,7 @@ jobs:
 
       # Use Java 21
       - name: Setup Java 21
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
@@ -152,7 +152,7 @@ jobs:
 
       # Use Java 21
       - name: Setup Java 21
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
