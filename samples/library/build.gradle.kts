@@ -8,7 +8,7 @@ version = "1.0"
 android {
     namespace = "com.nishtahir.library"
     compileSdk = 35
-    ndkVersion = "27.2.12479018"
+    ndkVersion = "27.3.13750724"
 
     defaultConfig {
         minSdk = 21

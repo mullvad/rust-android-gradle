@@ -12,7 +12,7 @@ class SimpleAndroidApp(
     private val ndkVersion =
         ndkVersionOverride
             ?: if (androidVersion >= android("3.4.0")) {
-                VersionNumber.parse("26.3.11579264")
+                VersionNumber.parse("27.3.13750724")
             } else {
                 null
             }
@@ -37,13 +37,13 @@ class SimpleAndroidApp(
                     }
                 }
             }
-            
+
             buildCache {
                 local {
                     directory = "${cacheDir.absolutePath.replace(File.separatorChar, '/')}"
                 }
             }
-            
+
             include(":app")
             include(":library")
         """
@@ -75,7 +75,7 @@ class SimpleAndroidApp(
             """
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package="$appPackage">
-            
+
                 <application android:label="@string/app_name" >
                     <activity
                         android:name=".${appActivity}"
@@ -91,7 +91,7 @@ class SimpleAndroidApp(
                         android:exported="false" >
                     </activity>
                 </application>
-            
+
             </manifest>
         """
                 .trimIndent(),
@@ -139,16 +139,16 @@ class SimpleAndroidApp(
             id("$androidPlugin") version("$androidVersion")
             id("me.sigptr.rust-android") version("${Versions.PLUGIN_VERSION}")
         }
-        
+
         repositories {
             google()
             mavenCentral()
         }
-        
+
         dependencies {
             implementation("joda-time:joda-time:2.7")
         }
-        
+
         android {
             namespace = "com.nishtahir"
             ${ndkVersion?.let { """ndkVersion = "$it"""" } ?: ""}
@@ -168,20 +168,20 @@ class SimpleAndroidApp(
             "${baseDir}/src/main/java/${packagePath}/${className}.java", /*language=java*/
             """
             package ${packageName};
-            
+
             import org.joda.time.LocalTime;
-            
+
             import android.app.Activity;
             import android.os.Bundle;
             import android.widget.TextView;
-            
+
             public class $className extends Activity {
                 @Override
                 public void onCreate(Bundle savedInstanceState) {
                     super.onCreate(savedInstanceState);
                     setContentView(R.layout.${resourceName}_layout);
                 }
-            
+
                 @Override
                 public void onStart() {
                     super.onStart();
@@ -198,7 +198,7 @@ class SimpleAndroidApp(
             "${baseDir}/src/test/java/${packagePath}/JavaUserTest.java", /*language=java*/
             """
             package ${packageName};
-            
+
             public class JavaUserTest {}
         """
                 .trimIndent(),
