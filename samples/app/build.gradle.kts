@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version("8.7.3")
+    id("com.android.application") version("8.12.3")
     id("me.sigptr.rust-android")
 }
 
@@ -38,9 +38,9 @@ cargo {
         all()
     }
 
-    exec = { spec, toolchain ->
-        spec.environment("TEST", "test")
-    }
+//    exec = { spec, toolchain ->
+//        spec.environment("TEST", "test")
+//    }
 }
 
 java {

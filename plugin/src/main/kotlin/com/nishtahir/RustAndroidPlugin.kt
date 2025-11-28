@@ -253,7 +253,6 @@ open class RustAndroidPlugin : Plugin<Project> {
             cargoExtension.targets!!.forEach { target ->
                 val theToolchain =
                     toolchains
-                        .filter { it.type == ToolchainType.ANDROID_PREBUILT }
                         .find { it.platform == target }
                 if (theToolchain == null) {
                     throw GradleException(

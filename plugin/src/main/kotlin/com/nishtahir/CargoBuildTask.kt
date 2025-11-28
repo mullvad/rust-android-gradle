@@ -34,7 +34,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val profile = property<String>()
 
-    @Input val targetIncludes = listProperty<String>()
+    @Input @Optional val targetIncludes = listProperty<String>()
 
     @Input val libname = property<String>()
 
@@ -52,7 +52,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val generateBuildId = property<Boolean>()
 
-    @Input val extraCargoBuildArguments = listProperty<String>()
+    @Input @Optional val extraCargoBuildArguments = listProperty<String>()
 
     @get:Inject abstract val projectLayout: ProjectLayout
 
@@ -92,8 +92,8 @@ abstract class CargoBuildTask : DefaultTask() {
             spec.into(intoDir)
 
             // Need to capture the value to dereference smoothly.
-            val targetIncludes = targetIncludes.get()
-            if (targetIncludes.isEmpty()) {
+            val targetIncludes = targetIncludes.orNull
+            if (targetIncludes != null) {
                 spec.include(targetIncludes.asIterable())
             } else {
                 // It's safe to unwrap, since we bailed at configuration time if this is unset.
@@ -282,7 +282,7 @@ abstract class CargoBuildTask : DefaultTask() {
                         )
                     }
 
-                    extraCargoBuildArguments.get().let { theCommandLine.addAll(it) }
+                    extraCargoBuildArguments.orNull?.let { theCommandLine.addAll(it) }
 
                     commandLine = theCommandLine
                 }
