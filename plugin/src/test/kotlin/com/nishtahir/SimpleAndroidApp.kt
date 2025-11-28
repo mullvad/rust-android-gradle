@@ -7,21 +7,24 @@ class SimpleAndroidApp(
     private val androidVersion: VersionNumber = Versions.latestAndroidVersion(),
     private val ndkVersionOverride: VersionNumber? = null,
     private val kotlinVersion: VersionNumber,
-    private val kaptWorkersEnabled: Boolean = true
+    private val kaptWorkersEnabled: Boolean = true,
 ) {
-    private val ndkVersion = ndkVersionOverride
-        ?: if (androidVersion >= android("3.4.0")) {
-            VersionNumber.parse("26.3.11579264")
-        } else {
-            null
-        }
+    private val ndkVersion =
+        ndkVersionOverride
+            ?: if (androidVersion >= android("3.4.0")) {
+                VersionNumber.parse("26.3.11579264")
+            } else {
+                null
+            }
 
     private val cacheDir = File(projectDir, ".cache").apply { mkdirs() }
 
     fun writeProject() {
         val localRepo = System.getProperty("local.repo")
 
-        appendFile("settings.gradle.kts", /*language=kotlin*/ """
+        appendFile(
+            "settings.gradle.kts", /*language=kotlin*/
+            """
             pluginManagement {
                 repositories {
                     maven("$localRepo")
@@ -43,25 +46,33 @@ class SimpleAndroidApp(
             
             include(":app")
             include(":library")
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
 
-        val libPackage =/*language=*/ "org.gradle.android.example.library"
-        val libActivity =/*language=*/ "LibraryActivity"
+        val libPackage = /* language= */ "org.gradle.android.example.library"
+        val libActivity = /* language= */ "LibraryActivity"
 
         writeActivity("library", libPackage, libActivity)
 
-        appendFile("library/src/main/AndroidManifest.xml", /*language=xml*/ """
+        appendFile(
+            "library/src/main/AndroidManifest.xml", /*language=xml*/
+            """
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package="$libPackage">
             </manifest>
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
 
-        val appPackage =/*language=*/ "org.gradle.android.example.app"
-        val appActivity =/*language=*/ "AppActivity"
+        val appPackage = /* language= */ "org.gradle.android.example.app"
+        val appActivity = /* language= */ "AppActivity"
 
         writeActivity("app", appPackage, appActivity)
 
-        appendFile("app/src/main/AndroidManifest.xml", /*language=xml*/ """
+        appendFile(
+            "app/src/main/AndroidManifest.xml", /*language=xml*/
+            """
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package="$appPackage">
             
@@ -82,34 +93,47 @@ class SimpleAndroidApp(
                 </application>
             
             </manifest>
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
 
-        appendFile("app/src/main/res/values/strings.xml", /*language=xml*/ """
+        appendFile(
+            "app/src/main/res/values/strings.xml", /*language=xml*/
+            """
             <resources>
                 <string name="app_name">Android Gradle</string>
             </resources>
-        """.trimIndent())
+            """
+                .trimIndent(),
+        )
 
-        appendFile("app/build.gradle.kts",
+        appendFile(
+            "app/build.gradle.kts",
             subprojectConfiguration("com.android.application"),
             """android.defaultConfig.applicationId = "org.gradle.android.test.app"""",
             """
-                dependencies {
-                    implementation(project(":library"))
-                }
-            """.trimIndent()
+            dependencies {
+                implementation(project(":library"))
+            }
+            """
+                .trimIndent(),
         )
 
         appendFile("library/build.gradle.kts", subprojectConfiguration("com.android.library"))
 
-        appendFile("gradle.properties", /*language=properties*/ """
+        appendFile(
+            "gradle.properties", /*language=properties*/
+            """
             android.useAndroidX=true
             org.gradle.jvmargs=-Xmx2048m
             kapt.use.worker.api=${kaptWorkersEnabled}
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
     }
 
-    private fun subprojectConfiguration(androidPlugin: String) = /*language=kotlin*/ """
+    private fun subprojectConfiguration(androidPlugin: String) = /*language=kotlin*/
+        """
         plugins {
             id("org.jetbrains.kotlin.android") version("$kotlinVersion")
             id("$androidPlugin") version("$androidVersion")
@@ -133,13 +157,16 @@ class SimpleAndroidApp(
                 minSdk = 28
             }
         }
-    """.trimIndent()
+    """
+            .trimIndent()
 
     private fun writeActivity(baseDir: String, packageName: String, className: String) {
         val resourceName = className.lowercase()
         val packagePath = packageName.replace('.', '/')
 
-        appendFile("${baseDir}/src/main/java/${packagePath}/${className}.java", /*language=java*/ """
+        appendFile(
+            "${baseDir}/src/main/java/${packagePath}/${className}.java", /*language=java*/
+            """
             package ${packageName};
             
             import org.joda.time.LocalTime;
@@ -163,15 +190,23 @@ class SimpleAndroidApp(
                     textView.setText("The current local time is: " + currentTime);
                 }
             }
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
 
-        appendFile("${baseDir}/src/test/java/${packagePath}/JavaUserTest.java", /*language=java*/ """
+        appendFile(
+            "${baseDir}/src/test/java/${packagePath}/JavaUserTest.java", /*language=java*/
+            """
             package ${packageName};
             
             public class JavaUserTest {}
-        """.trimIndent())
+        """
+                .trimIndent(),
+        )
 
-        appendFile("${baseDir}/src/main/res/layout/${resourceName}_layout.xml", /*language=xml*/ """
+        appendFile(
+            "${baseDir}/src/main/res/layout/${resourceName}_layout.xml", /*language=xml*/
+            """
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
@@ -183,16 +218,22 @@ class SimpleAndroidApp(
                 android:layout_height="wrap_content"
                 />
             </LinearLayout>
-        """.trimIndent())
+            """
+                .trimIndent(),
+        )
 
-        appendFile("${baseDir}/src/main/rs/${resourceName}.rs", /*language=renderscript*/ """
+        appendFile(
+            "${baseDir}/src/main/rs/${resourceName}.rs", /*language=renderscript*/
+            """
             #pragma version(1)
             #pragma rs java_package_name(com.example.myapplication)
-            
+
             static void addintAccum(int *accum, int val) {
                 *accum += val;
             }
-        """.trimIndent())
+            """
+                .trimIndent(),
+        )
     }
 
     private fun appendFile(relativePath: String, vararg contents: String) {

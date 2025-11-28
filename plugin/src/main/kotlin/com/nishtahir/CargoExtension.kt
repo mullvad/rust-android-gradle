@@ -1,10 +1,9 @@
 package com.nishtahir
 
-import org.gradle.api.Action
-import org.gradle.api.GradleException
-import org.gradle.process.ExecSpec
 import java.io.File
 import java.util.Properties
+import org.gradle.api.GradleException
+import org.gradle.process.ExecSpec
 
 sealed class Features {
     class All() : Features()
@@ -114,7 +113,9 @@ open class CargoExtension {
         if (propVal == null || propVal == "") {
             return ifUnset
         }
-        throw GradleException("Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set")
+        throw GradleException(
+            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set"
+        )
     }
 
     internal fun getProperty(camelCaseName: String, snakeCaseName: String): String? {

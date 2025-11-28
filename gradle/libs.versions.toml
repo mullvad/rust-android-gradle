@@ -8,6 +8,7 @@ junit-jupiter-api = "6.0.1"
 kotest = "6.0.5"
 kotlin = "2.2.21"
 kotlinx-serialization-json = "1.9.0"
+ktfmt = "0.25.0"
 version-catalog-update = "1.0.1"
 
 [libraries]
@@ -27,3 +28,4 @@ gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }

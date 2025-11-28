@@ -26,13 +26,22 @@ data class VersionNumber(
     val micro: Int,
     val patch: Int,
     val qualifier: String,
-    private val scheme: Scheme
-): Comparable<VersionNumber> {
-    constructor(major: Int, minor: Int, micro: Int, qualifier: String) :
-            this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME)
+    private val scheme: Scheme,
+) : Comparable<VersionNumber> {
+    constructor(
+        major: Int,
+        minor: Int,
+        micro: Int,
+        qualifier: String,
+    ) : this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME)
 
-    constructor(major: Int, minor: Int, micro: Int, patch: Int, qualifier: String) :
-            this(major, minor, micro, patch, qualifier, PATCH_SCHEME)
+    constructor(
+        major: Int,
+        minor: Int,
+        micro: Int,
+        patch: Int,
+        qualifier: String,
+    ) : this(major, minor, micro, patch, qualifier, PATCH_SCHEME)
 
     fun baseVersion() = VersionNumber(major, minor, micro, patch, "", scheme)
 
@@ -57,10 +66,11 @@ data class VersionNumber(
 
     interface Scheme {
         fun parse(value: String?): VersionNumber
+
         fun format(versionNumber: VersionNumber): String
     }
 
-    private abstract class AbstractScheme(val depth: Int): Scheme {
+    private abstract class AbstractScheme(val depth: Int) : Scheme {
         override fun parse(value: String?): VersionNumber {
             if (value.isNullOrEmpty()) {
                 return UNKNOWN
@@ -105,8 +115,7 @@ data class VersionNumber(
     private class Scanner(val str: String) {
         var pos = 0
 
-        fun hasDigit(): Boolean =
-            pos < str.length && str[pos].isDigit()
+        fun hasDigit(): Boolean = pos < str.length && str[pos].isDigit()
 
         fun isSeparatorAndDigit(vararg separators: Char): Boolean =
             pos < str.length - 1 && separators.contains(str[pos]) && str[pos + 1].isDigit()
@@ -116,42 +125,61 @@ data class VersionNumber(
 
         fun scanDigit(): Int {
             val start = pos
-            while (hasDigit()) { pos += 1 }
+            while (hasDigit()) {
+                pos += 1
+            }
             return str.substring(start..<pos).toInt()
         }
 
         fun isEnd(): Boolean = pos == str.length
-        fun skipSeparator() { pos += 1 }
+
+        fun skipSeparator() {
+            pos += 1
+        }
+
         fun remainder(): String = str.substring(pos..<str.length)
     }
+
     companion object {
-        private val DEFAULT_SCHEME = object : AbstractScheme(3) {
-            override fun format(versionNumber: VersionNumber): String =
-                String.format(
-                    "%d.%d.%d%s",
-                    versionNumber.major,
-                    versionNumber.minor,
-                    versionNumber.micro,
-                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
-                )
-        }
-        private val PATCH_SCHEME = object : AbstractScheme(4) {
-            override fun format(versionNumber: VersionNumber): String =
-                String.format(
-                    "%d.%d.%d.%d%s",
-                    versionNumber.major,
-                    versionNumber.minor,
-                    versionNumber.micro,
-                    versionNumber.patch,
-                    if (versionNumber.qualifier.isEmpty()) { "" } else { "-" + versionNumber.qualifier }
-                )
-        }
+        private val DEFAULT_SCHEME =
+            object : AbstractScheme(3) {
+                override fun format(versionNumber: VersionNumber): String =
+                    String.format(
+                        "%d.%d.%d%s",
+                        versionNumber.major,
+                        versionNumber.minor,
+                        versionNumber.micro,
+                        if (versionNumber.qualifier.isEmpty()) {
+                            ""
+                        } else {
+                            "-" + versionNumber.qualifier
+                        },
+                    )
+            }
+        private val PATCH_SCHEME =
+            object : AbstractScheme(4) {
+                override fun format(versionNumber: VersionNumber): String =
+                    String.format(
+                        "%d.%d.%d.%d%s",
+                        versionNumber.major,
+                        versionNumber.minor,
+                        versionNumber.micro,
+                        versionNumber.patch,
+                        if (versionNumber.qualifier.isEmpty()) {
+                            ""
+                        } else {
+                            "-" + versionNumber.qualifier
+                        },
+                    )
+            }
         val UNKNOWN: VersionNumber = version(0)
 
         fun version(major: Int) = version(major, 0)
+
         fun version(major: Int, minor: Int) = VersionNumber(major, minor, 0, 0, "", DEFAULT_SCHEME)
 
         fun scheme(): Scheme = DEFAULT_SCHEME
+
         fun withPatchNumber(): Scheme = PATCH_SCHEME
 
         fun parse(versionString: String) = DEFAULT_SCHEME.parse(versionString)

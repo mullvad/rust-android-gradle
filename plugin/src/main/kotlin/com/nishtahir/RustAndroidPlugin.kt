@@ -1,14 +1,14 @@
 package com.nishtahir
 
 import com.android.build.gradle.*
+import java.io.File
+import java.util.Properties
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Sync
-import java.io.File
-import java.util.Properties
 
 const val RUST_TASK_GROUP = "rust"
 
@@ -18,90 +18,95 @@ enum class ToolchainType {
 }
 
 // See https://forge.rust-lang.org/platform-support.html.
-val toolchains = listOf(
-    Toolchain(
-        "linux-x86-64",
-        ToolchainType.DESKTOP,
-        "x86_64-unknown-linux-gnu",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/linux-x86-64",
-    ),
-    // This should eventually go away: the darwin-x86-64 target will supersede it.
-    // https://github.com/mozilla/rust-android-gradle/issues/77
-    Toolchain(
-        "darwin",
-        ToolchainType.DESKTOP,
-        "x86_64-apple-darwin",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/darwin",
-    ),
-    Toolchain(
-        "darwin-x86-64",
-        ToolchainType.DESKTOP,
-        "x86_64-apple-darwin",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/darwin-x86-64",
-    ),
-    Toolchain(
-        "darwin-aarch64",
-        ToolchainType.DESKTOP,
-        "aarch64-apple-darwin",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/darwin-aarch64",
-    ),
-    Toolchain(
-        "win32-x86-64-msvc",
-        ToolchainType.DESKTOP,
-        "x86_64-pc-windows-msvc",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/win32-x86-64",
-    ),
-    Toolchain(
-        "win32-x86-64-gnu",
-        ToolchainType.DESKTOP,
-        "x86_64-pc-windows-gnu",
-        "<compilerTriple>",
-        "<binutilsTriple>",
-        "desktop/win32-x86-64",
-    ),
-    Toolchain(
-        "arm",
-        ToolchainType.ANDROID_PREBUILT,
-        "armv7-linux-androideabi",  // This is correct.  "Note: For 32-bit ARM, the compiler is prefixed with
-        "armv7a-linux-androideabi", // armv7a-linux-androideabi, but the binutils tools are prefixed with
-        "arm-linux-androideabi",    // arm-linux-androideabi. For other architectures, the prefixes are the same
-        "android/armeabi-v7a",
-    ),     // for all tools."  (Ref: https://developer.android.com/ndk/guides/other_build_systems#overview )
-    Toolchain(
-        "arm64",
-        ToolchainType.ANDROID_PREBUILT,
-        "aarch64-linux-android",
-        "aarch64-linux-android",
-        "aarch64-linux-android",
-        "android/arm64-v8a",
-    ),
-    Toolchain(
-        "x86",
-        ToolchainType.ANDROID_PREBUILT,
-        "i686-linux-android",
-        "i686-linux-android",
-        "i686-linux-android",
-        "android/x86",
-    ),
-    Toolchain(
-        "x86_64",
-        ToolchainType.ANDROID_PREBUILT,
-        "x86_64-linux-android",
-        "x86_64-linux-android",
-        "x86_64-linux-android",
-        "android/x86_64",
-    ),
-)
+val toolchains =
+    listOf(
+        Toolchain(
+            "linux-x86-64",
+            ToolchainType.DESKTOP,
+            "x86_64-unknown-linux-gnu",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/linux-x86-64",
+        ),
+        // This should eventually go away: the darwin-x86-64 target will supersede it.
+        // https://github.com/mozilla/rust-android-gradle/issues/77
+        Toolchain(
+            "darwin",
+            ToolchainType.DESKTOP,
+            "x86_64-apple-darwin",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/darwin",
+        ),
+        Toolchain(
+            "darwin-x86-64",
+            ToolchainType.DESKTOP,
+            "x86_64-apple-darwin",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/darwin-x86-64",
+        ),
+        Toolchain(
+            "darwin-aarch64",
+            ToolchainType.DESKTOP,
+            "aarch64-apple-darwin",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/darwin-aarch64",
+        ),
+        Toolchain(
+            "win32-x86-64-msvc",
+            ToolchainType.DESKTOP,
+            "x86_64-pc-windows-msvc",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/win32-x86-64",
+        ),
+        Toolchain(
+            "win32-x86-64-gnu",
+            ToolchainType.DESKTOP,
+            "x86_64-pc-windows-gnu",
+            "<compilerTriple>",
+            "<binutilsTriple>",
+            "desktop/win32-x86-64",
+        ),
+        Toolchain(
+            "arm",
+            ToolchainType.ANDROID_PREBUILT,
+            "armv7-linux-androideabi", // This is correct.  "Note: For 32-bit ARM, the compiler is
+            // prefixed with
+            "armv7a-linux-androideabi", // armv7a-linux-androideabi, but the binutils tools are
+            // prefixed with
+            "arm-linux-androideabi", // arm-linux-androideabi. For other architectures, the prefixes
+            // are the same
+            "android/armeabi-v7a",
+        ), // for all tools."  (Ref:
+        // https://developer.android.com/ndk/guides/other_build_systems#overview )
+        Toolchain(
+            "arm64",
+            ToolchainType.ANDROID_PREBUILT,
+            "aarch64-linux-android",
+            "aarch64-linux-android",
+            "aarch64-linux-android",
+            "android/arm64-v8a",
+        ),
+        Toolchain(
+            "x86",
+            ToolchainType.ANDROID_PREBUILT,
+            "i686-linux-android",
+            "i686-linux-android",
+            "i686-linux-android",
+            "android/x86",
+        ),
+        Toolchain(
+            "x86_64",
+            ToolchainType.ANDROID_PREBUILT,
+            "x86_64-linux-android",
+            "x86_64-linux-android",
+            "x86_64-linux-android",
+            "android/x86_64",
+        ),
+    )
 
 data class Ndk(val path: File, val version: String) {
     val versionMajor: Int
@@ -114,7 +119,7 @@ data class Toolchain(
     val target: String,
     val compilerTriple: String,
     val binutilsTriple: String,
-    val folder: String
+    val folder: String,
 ) {
     fun cc(apiLevel: Int): File =
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -172,7 +177,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                     }
                 }
             }
-
         }
     }
 
@@ -216,9 +220,8 @@ open class RustAndroidPlugin : Plugin<Project> {
                     apiLevel ?: extensions[T::class].defaultConfig.minSdkVersion!!.apiLevel
                 cargoExtension.apiLevels = cargoExtension.targets!!.associateWith { default }
             }
-            val missingApiLevelTargets = cargoExtension.targets!!.toSet().minus(
-                cargoExtension.apiLevels.keys,
-            )
+            val missingApiLevelTargets =
+                cargoExtension.targets!!.toSet().minus(cargoExtension.apiLevels.keys)
             if (missingApiLevelTargets.isNotEmpty()) {
                 throw GradleException("`apiLevels` missing entries for: $missingApiLevelTargets")
             }
@@ -230,15 +233,16 @@ open class RustAndroidPlugin : Plugin<Project> {
             }
 
             // Determine the NDK version, if present
-            val ndk = extensions[T::class].ndkDirectory.let {
-                val ndkSourceProperties = Properties()
-                val ndkSourcePropertiesFile = File(it, "source.properties")
-                if (ndkSourcePropertiesFile.exists()) {
-                    ndkSourceProperties.load(ndkSourcePropertiesFile.inputStream())
+            val ndk =
+                extensions[T::class].ndkDirectory.let {
+                    val ndkSourceProperties = Properties()
+                    val ndkSourcePropertiesFile = File(it, "source.properties")
+                    if (ndkSourcePropertiesFile.exists()) {
+                        ndkSourceProperties.load(ndkSourcePropertiesFile.inputStream())
+                    }
+                    val ndkVersion = ndkSourceProperties.getProperty("Pkg.Revision", "0.0")
+                    Ndk(path = it, version = ndkVersion)
                 }
-                val ndkVersion = ndkSourceProperties.getProperty("Pkg.Revision", "0.0")
-                Ndk(path = it, version = ndkVersion)
-            }
 
             // Fish linker wrapper scripts from our Java resources.
             val generateLinkerWrapper =
@@ -250,83 +254,101 @@ open class RustAndroidPlugin : Plugin<Project> {
             val rootBuildDir by rootBuildDirectory()
             generateLinkerWrapper.apply {
                 // From https://stackoverflow.com/a/320595.
-                from(rootProject.zipTree(File(RustAndroidPlugin::class.java.protectionDomain.codeSource.location.toURI()).path))
+                from(
+                    rootProject.zipTree(
+                        File(
+                                RustAndroidPlugin::class
+                                    .java
+                                    .protectionDomain
+                                    .codeSource
+                                    .location
+                                    .toURI()
+                            )
+                            .path
+                    )
+                )
                 include("**/linker-wrapper*")
                 into(File(rootBuildDir, "linker-wrapper"))
-                eachFile {
-                    it.path = it.path.replaceFirst("com/nishtahir", "")
-                }
-                filePermissions {
-                    it.unix("755")
-                }
+                eachFile { it.path = it.path.replaceFirst("com/nishtahir", "") }
+                filePermissions { it.unix("755") }
                 includeEmptyDirs = false
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
 
-            val buildTask = tasks.maybeCreate(
-                "cargoBuild",
-                DefaultTask::class.java,
-            ).apply {
-                group = RUST_TASK_GROUP
-                description = "Build library (all targets)"
-            }
+            val buildTask =
+                tasks.maybeCreate("cargoBuild", DefaultTask::class.java).apply {
+                    group = RUST_TASK_GROUP
+                    description = "Build library (all targets)"
+                }
 
             cargoExtension.targets!!.forEach { target ->
-                val theToolchain = toolchains
-                    .filter {
-                        it.type == ToolchainType.ANDROID_PREBUILT
-                    }
-                    .find { it.platform == target }
+                val theToolchain =
+                    toolchains
+                        .filter { it.type == ToolchainType.ANDROID_PREBUILT }
+                        .find { it.platform == target }
                 if (theToolchain == null) {
                     throw GradleException(
                         "Target $target is not recognized (recognized targets: ${
                             toolchains.map { it.platform }.sorted()
-                        }).  Check `local.properties` and `build.gradle`.",
+                        }).  Check `local.properties` and `build.gradle`."
                     )
                 }
 
-                val targetBuildTask = tasks.maybeCreate(
-                    "cargoBuild${target.capitalized()}",
-                    CargoBuildTask::class.java,
-                ).apply {
-                    group = RUST_TASK_GROUP
-                    description = "Build library ($target)"
-                    toolchain.set(theToolchain)
-                    projectProjectDir.set(project.project.projectDir)
-                    rootBuildDirectory.set(rootBuildDirectory())
-                    // CARGO_TARGET_DIR can be used to force the use of a global, shared target directory
-                    // across all rust projects on a machine. Use it if it's set, otherwise use the
-                    // configured `targetDirectory` value, and fall back to `${module}/target`.
-                    //
-                    // We also allow this to be specified in `local.properties`, not because this is
-                    // something you should ever need to do currently, but we don't want it to ruin anyone's
-                    // day if it turns out we're wrong about that.
+                val targetBuildTask =
+                    tasks
+                        .maybeCreate(
+                            "cargoBuild${target.capitalized()}",
+                            CargoBuildTask::class.java,
+                        )
+                        .apply {
+                            group = RUST_TASK_GROUP
+                            description = "Build library ($target)"
+                            toolchain.set(theToolchain)
+                            projectProjectDir.set(project.project.projectDir)
+                            rootBuildDirectory.set(rootBuildDirectory())
+                            // CARGO_TARGET_DIR can be used to force the use of a global, shared
+                            // target
+                            // directory
+                            // across all rust projects on a machine. Use it if it's set, otherwise
+                            // use the
+                            // configured `targetDirectory` value, and fall back to
+                            // `${module}/target`.
+                            //
+                            // We also allow this to be specified in `local.properties`, not because
+                            // this is
+                            // something you should ever need to do currently, but we don't want it
+                            // to ruin
+                            // anyone's
+                            // day if it turns out we're wrong about that.
 
-                    this.target.set(
-                        cargoExtension.getProperty("rust.cargoTargetDir", "CARGO_TARGET_DIR")
-                            ?: cargoExtension.targetDirectory
-                            ?: "${cargoExtension.module!!}/target",
-                    )
+                            this.target.set(
+                                cargoExtension.getProperty(
+                                    "rust.cargoTargetDir",
+                                    "CARGO_TARGET_DIR",
+                                )
+                                    ?: cargoExtension.targetDirectory
+                                    ?: "${cargoExtension.module!!}/target"
+                            )
 
-                    rustcCommand.set(cargoExtension.rustcCommand)
-                    cargoCommand.set(cargoExtension.cargoCommand)
-                    profile.set(cargoExtension.profile)
-                    targetIncludes.set(cargoExtension.targetIncludes?.toList())
-                    libname.set(cargoExtension.libname)
-                    rustupChannel.set(cargoExtension.rustupChannel)
-                    verbose.set(cargoExtension.verbose)
-                    featureSpec.set(cargoExtension.featureSpec)
-                    toolchainDirectory.set(cargoExtension.toolchainDirectory)
-                    generateBuildId.set(cargoExtension.generateBuildId)
-                    pythonCommand.set(cargoExtension.pythonCommand)
-                    extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
+                            rustcCommand.set(cargoExtension.rustcCommand)
+                            cargoCommand.set(cargoExtension.cargoCommand)
+                            profile.set(cargoExtension.profile)
+                            targetIncludes.set(cargoExtension.targetIncludes?.toList())
+                            libname.set(cargoExtension.libname)
+                            rustupChannel.set(cargoExtension.rustupChannel)
+                            verbose.set(cargoExtension.verbose)
+                            featureSpec.set(cargoExtension.featureSpec)
+                            toolchainDirectory.set(cargoExtension.toolchainDirectory)
+                            generateBuildId.set(cargoExtension.generateBuildId)
+                            pythonCommand.set(cargoExtension.pythonCommand)
+                            extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
 
-                    this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
-                    module.set(cargoExtension.module)
-//                    plugins.set(project.plugins.toSet())
+                            this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
+                            module.set(cargoExtension.module)
+                            //                    plugins.set(project.plugins.toSet())
 
-                    this.ndk.set(ndk)
-                }
+                            this.ndk.set(ndk)
+                        }
 
                 targetBuildTask.dependsOn(generateLinkerWrapper)
                 buildTask.dependsOn(targetBuildTask)
