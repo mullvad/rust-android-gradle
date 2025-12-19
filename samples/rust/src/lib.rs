@@ -18,7 +18,7 @@ pub extern "C" fn invokeCallbackViaJNA(callback: Callback) {
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_nishtahir_androidrust_MainActivity_invokeCallbackViaJNI(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _class: JClass,
     callback: JObject
 ) {
@@ -26,5 +26,5 @@ pub extern "C" fn Java_com_nishtahir_androidrust_MainActivity_invokeCallbackViaJ
     let response = env.new_string(&s)
         .expect("Couldn't create java string!");
     env.call_method(callback, "callback", "(Ljava/lang/String;)V",
-                    &[JValue::from(JObject::from(response))]).unwrap();
+                    &[JValue::from(&JObject::from(response))]).unwrap();
 }
