@@ -244,6 +244,28 @@ open class RustAndroidPlugin : Plugin<Project> {
                     Ndk(path = it, version = ndkVersion)
                 }
 
+            // Fish linker wrapper scripts from our Java resources.
+            val generateLinkerWrapper = rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
+                group = RUST_TASK_GROUP
+                description = "Generate shared linker wrapper script"
+            }
+
+            val rootBuildDir by rootBuildDirectory()
+            generateLinkerWrapper.apply {
+                // From https://stackoverflow.com/a/320595.
+                from(rootProject.zipTree(File(RustAndroidPlugin::class.java.protectionDomain.codeSource.location.toURI()).path))
+                include("**/linker-wrapper*")
+                into(File(rootBuildDir, "linker-wrapper"))
+                eachFile {
+                    it.path = it.path.replaceFirst("com/nishtahir", "")
+                }
+                filePermissions {
+                    it.unix("755")
+                }
+                includeEmptyDirs = false
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+
             val buildTask =
                 tasks.maybeCreate("cargoBuild", DefaultTask::class.java).apply {
                     group = RUST_TASK_GROUP
@@ -309,6 +331,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                             toolchainDirectory.set(cargoExtension.toolchainDirectory)
                             generateBuildId.set(cargoExtension.generateBuildId)
                             extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
+                            pythonCommand.set(cargoExtension.pythonCommand)
 
                             this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
                             module.set(cargoExtension.module)
@@ -317,6 +340,8 @@ open class RustAndroidPlugin : Plugin<Project> {
                         }
 
                 buildTask.dependsOn(targetBuildTask)
+
+                targetBuildTask.dependsOn(generateLinkerWrapper)
             }
         }
 }

@@ -39,6 +39,12 @@ open class CargoExtension {
     var apiLevels: Map<String, Int> = mapOf()
     var extraCargoBuildArguments: List<String>? = null
     var generateBuildId: Boolean = false
+    var pythonCommand: String = ""
+        get() {
+            return field.ifEmpty {
+                getProperty("rust.pythonCommand", "RUST_ANDROID_GRADLE_PYTHON_COMMAND") ?: "python"
+            }
+        }
 
     // It would be nice to use a receiver here, but there are problems interoperating with Groovy
     // and Kotlin that are just not worth working out.  Another JVM language, yet another dynamic
@@ -107,7 +113,7 @@ open class CargoExtension {
             return ifUnset
         }
         throw GradleException(
-            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set"
+            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set",
         )
     }
 
