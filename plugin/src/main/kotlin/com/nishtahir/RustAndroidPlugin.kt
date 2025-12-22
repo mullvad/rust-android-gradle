@@ -245,23 +245,32 @@ open class RustAndroidPlugin : Plugin<Project> {
                 }
 
             // Fish linker wrapper scripts from our Java resources.
-            val generateLinkerWrapper = rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
-                group = RUST_TASK_GROUP
-                description = "Generate shared linker wrapper script"
-            }
+            val generateLinkerWrapper =
+                rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
+                    group = RUST_TASK_GROUP
+                    description = "Generate shared linker wrapper script"
+                }
 
             val rootBuildDir by rootBuildDirectory()
             generateLinkerWrapper.apply {
                 // From https://stackoverflow.com/a/320595.
-                from(rootProject.zipTree(File(RustAndroidPlugin::class.java.protectionDomain.codeSource.location.toURI()).path))
+                from(
+                    rootProject.zipTree(
+                        File(
+                                RustAndroidPlugin::class
+                                    .java
+                                    .protectionDomain
+                                    .codeSource
+                                    .location
+                                    .toURI()
+                            )
+                            .path
+                    )
+                )
                 include("**/linker-wrapper*")
                 into(File(rootBuildDir, "linker-wrapper"))
-                eachFile {
-                    it.path = it.path.replaceFirst("com/nishtahir", "")
-                }
-                filePermissions {
-                    it.unix("755")
-                }
+                eachFile { it.path = it.path.replaceFirst("com/nishtahir", "") }
+                filePermissions { it.unix("755") }
                 includeEmptyDirs = false
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
@@ -273,14 +282,12 @@ open class RustAndroidPlugin : Plugin<Project> {
                 }
 
             cargoExtension.targets!!.forEach { target ->
-                val theToolchain =
-                    toolchains
-                        .find { it.platform == target }
+                val theToolchain = toolchains.find { it.platform == target }
                 if (theToolchain == null) {
                     throw GradleException(
                         "Target $target is not recognized (recognized targets: ${
                             toolchains.map { it.platform }.sorted()
-                        }).  Check `local.properties` and `build.gradle`.",
+                        }).  Check `local.properties` and `build.gradle`."
                     )
                 }
 
@@ -317,7 +324,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                                     "CARGO_TARGET_DIR",
                                 )
                                     ?: cargoExtension.targetDirectory
-                                    ?: "${cargoExtension.module!!}/target",
+                                    ?: "${cargoExtension.module!!}/target"
                             )
 
                             rustcCommand.set(cargoExtension.rustcCommand)

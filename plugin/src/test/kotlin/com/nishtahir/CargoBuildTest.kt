@@ -16,8 +16,8 @@ data class BuildTestData(val android: VersionNumber, val gradle: GradleVersion) 
 }
 
 @EnabledIf(MultiVersionCondition::class)
-class CargoBuildTest : FunSpec(
-    {
+class CargoBuildTest :
+    FunSpec({
         val kotlinVersion = TestVersions.latestKotlinVersion
 
         val test: suspend FunSpecContainerScope.(BuildTestData) -> Unit =
@@ -26,23 +26,24 @@ class CargoBuildTest : FunSpec(
                 val projectDir = tempDirectory()
 
                 SimpleAndroidApp(
-                    projectDir = projectDir,
-                    androidVersion = androidVersion,
-                    kotlinVersion = kotlinVersion,
-                ).writeProject()
+                        projectDir = projectDir,
+                        androidVersion = androidVersion,
+                        kotlinVersion = kotlinVersion,
+                    )
+                    .writeProject()
 
-                SimpleCargoProject(
-                    projectDir = projectDir,
-                    targets = listOf("x86_64"),
-                ).writeProject()
+                SimpleCargoProject(projectDir = projectDir, targets = listOf("x86_64"))
+                    .writeProject()
 
                 // act
-                val buildResult = RunGradleTask(
-                    gradleVersion = gradleVersion,
-                    projectDir = projectDir,
-                    taskName = "cargoBuild",
-                    arguments = listOf("--info", "--stacktrace"),
-                ).build()
+                val buildResult =
+                    RunGradleTask(
+                            gradleVersion = gradleVersion,
+                            projectDir = projectDir,
+                            taskName = "cargoBuild",
+                            arguments = listOf("--info", "--stacktrace"),
+                        )
+                        .build()
 
                 // To ease debugging.
                 projectDir.walk().onEnter {
@@ -53,12 +54,14 @@ class CargoBuildTest : FunSpec(
                 // assert
                 buildResult.task(":app:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
                 buildResult.task(":library:cargoBuild")?.outcome shouldBe TaskOutcome.SUCCESS
-                File(projectDir, "app/build/rustJniLibs/android/x86_64/librust.so") should {
-                    it.exists()
-                }
-                File(projectDir, "library/build/rustJniLibs/android/x86_64/librust.so") should {
-                    it.exists()
-                }
+                File(projectDir, "app/build/rustJniLibs/android/x86_64/librust.so") should
+                    {
+                        it.exists()
+                    }
+                File(projectDir, "library/build/rustJniLibs/android/x86_64/librust.so") should
+                    {
+                        it.exists()
+                    }
             }
         withData(
             TestVersions.allCandidateTestVersions().flatMap { entry ->
@@ -66,5 +69,4 @@ class CargoBuildTest : FunSpec(
             },
             test = test,
         )
-    },
-)
+    })

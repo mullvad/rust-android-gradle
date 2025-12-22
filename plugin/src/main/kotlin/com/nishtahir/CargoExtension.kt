@@ -113,7 +113,7 @@ open class CargoExtension {
             return ifUnset
         }
         throw GradleException(
-            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set",
+            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set"
         )
     }
 

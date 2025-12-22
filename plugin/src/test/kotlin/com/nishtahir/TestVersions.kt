@@ -33,10 +33,13 @@ object TestVersions {
     fun latestGradleVersion() = allCandidateTestVersions().values.flatten().maxOrNull()!!
 
     fun latestAndroidVersions() =
-        allCandidateTestVersions().keys.map { getLatestVersionForAndroid("${it.major}.${it.minor}") }
+        allCandidateTestVersions().keys.map {
+            getLatestVersionForAndroid("${it.major}.${it.minor}")
+        }
 
     fun latestSupportedGradleVersionFor(androidVersion: VersionNumber) =
-        allCandidateTestVersions().entries
+        allCandidateTestVersions()
+            .entries
             .find { it.key.major == androidVersion.major && it.key.minor == androidVersion.minor }
             ?.value
             ?.maxOrNull()!!
@@ -45,7 +48,8 @@ object TestVersions {
 
     private fun getLatestVersionForAndroid(version: String): VersionNumber {
         val number = VersionNumber.parse(version)
-        return allCandidateTestVersions().keys
+        return allCandidateTestVersions()
+            .keys
             .filter { it.major == number.major && it.minor == number.minor }
             .maxOrNull()!!
     }

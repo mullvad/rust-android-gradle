@@ -236,49 +236,60 @@ abstract class CargoBuildTask : DefaultTask() {
                                 toolchainDirectory.get()
                             }
 
+                        val linkerWrapper =
+                            if (System.getProperty("os.name").startsWith("Windows")) {
+                                File(buildDir, "linker-wrapper/linker-wrapper.bat")
+                            } else {
+                                File(buildDir, "linker-wrapper/linker-wrapper.sh")
+                            }
+                        environment("CARGO_TARGET_${toolchainTarget}_LINKER", linkerWrapper.path)
 
-                val linkerWrapper =
-                    if (System.getProperty("os.name").startsWith("Windows")) {
-                        File(buildDir, "linker-wrapper/linker-wrapper.bat")
-                    } else {
-                        File(buildDir, "linker-wrapper/linker-wrapper.sh")
+                        val cc = File(toolchainDirectory, "${toolchain.cc(apiLevel.get())}").path
+                        val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
+                        val ar =
+                            File(
+                                    toolchainDirectory,
+                                    "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
+                                )
+                                .path
+
+                        // For build.rs in `cc` consumers: like "CC_i686-linux-android".  See
+                        // https://github.com/alexcrichton/cc-rs#external-configuration-via-environment-variables.
+                        environment("CC_${toolchain.target}", cc)
+                        environment("CXX_${toolchain.target}", cxx)
+                        environment("AR_${toolchain.target}", ar)
+
+                        // Set CLANG_PATH in the environment, so that bindgen (or anything
+                        // else using clang-sys in a build.rs) works properly, and doesn't
+                        // use host headers and such.
+                        //                val shouldConfigure = getFlagProperty(
+                        //                    "rust.autoConfigureClangSys",
+                        //                    "RUST_ANDROID_GRADLE_AUTO_CONFIGURE_CLANG_SYS",
+                        //                    // By default, only do this for non-desktop platforms.
+                        // If we're
+                        //                    // building for desktop, things should work out of the
+                        // box.
+                        //                    true
+                        //                )
+                        //                if (shouldConfigure) {
+                        environment("CLANG_PATH", cc)
+                        //                }
+
+                        // Configure our linker wrapper.
+                        environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
+                        environment(
+                            "RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
+                            File(buildDir, "linker-wrapper/linker-wrapper.py").path,
+                        )
+                        environment("RUST_ANDROID_GRADLE_CC", cc)
+                        environment(
+                            "RUST_ANDROID_GRADLE_CC_LINK_ARG",
+                            buildString {
+                                append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so")
+                                if (generateBuildId.get()) append(",--build-id")
+                            },
+                        )
                     }
-                environment("CARGO_TARGET_${toolchainTarget}_LINKER", linkerWrapper.path)
-
-                val cc = File(toolchainDirectory, "${toolchain.cc(apiLevel.get())}").path
-                val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
-                val ar = File(toolchainDirectory, "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}").path
-
-                // For build.rs in `cc` consumers: like "CC_i686-linux-android".  See
-                // https://github.com/alexcrichton/cc-rs#external-configuration-via-environment-variables.
-                environment("CC_${toolchain.target}", cc)
-                environment("CXX_${toolchain.target}", cxx)
-                environment("AR_${toolchain.target}", ar)
-
-                // Set CLANG_PATH in the environment, so that bindgen (or anything
-                // else using clang-sys in a build.rs) works properly, and doesn't
-                // use host headers and such.
-//                val shouldConfigure = getFlagProperty(
-//                    "rust.autoConfigureClangSys",
-//                    "RUST_ANDROID_GRADLE_AUTO_CONFIGURE_CLANG_SYS",
-//                    // By default, only do this for non-desktop platforms. If we're
-//                    // building for desktop, things should work out of the box.
-//                    true
-//                )
-//                if (shouldConfigure) {
-                    environment("CLANG_PATH", cc)
-//                }
-
-                // Configure our linker wrapper.
-                environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
-                environment("RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
-                    File(buildDir, "linker-wrapper/linker-wrapper.py").path)
-                environment("RUST_ANDROID_GRADLE_CC", cc)
-                environment("RUST_ANDROID_GRADLE_CC_LINK_ARG", buildString {
-                    append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so")
-                    if (generateBuildId.get()) append(",--build-id")
-                })
-            }
 
                     extraCargoBuildArguments.orNull?.let { theCommandLine.addAll(it) }
 
@@ -297,37 +308,37 @@ private fun getDefaultTargetTriple(
     execOperations: ExecOperations,
     rustc: String,
 ): String? {
-  val stdout = ByteArrayOutputStream()
-  val result =
-      execOperations.exec { spec ->
-        spec.standardOutput = stdout
-        spec.commandLine = listOf(rustc, "--version", "--verbose")
-      }
-  if (result.exitValue != 0) {
-    task.logger.warn(
-        "Failed to get default target triple from rustc (exit code: ${result.exitValue})",
-    )
-    return null
-  }
-  val output = stdout.toString()
+    val stdout = ByteArrayOutputStream()
+    val result =
+        execOperations.exec { spec ->
+            spec.standardOutput = stdout
+            spec.commandLine = listOf(rustc, "--version", "--verbose")
+        }
+    if (result.exitValue != 0) {
+        task.logger.warn(
+            "Failed to get default target triple from rustc (exit code: ${result.exitValue})"
+        )
+        return null
+    }
+    val output = stdout.toString()
 
-  // The `rustc --version --verbose` output contains a number of lines like `key: value`.
-  // We're only interested in `host: `, which corresponds to the default target triple.
-  val triplePrefix = "host: "
+    // The `rustc --version --verbose` output contains a number of lines like `key: value`.
+    // We're only interested in `host: `, which corresponds to the default target triple.
+    val triplePrefix = "host: "
 
-  val triple =
-      output
-          .split("\n")
-          .find { it.startsWith(triplePrefix) }
-          ?.substring(triplePrefix.length)
-          ?.trim()
+    val triple =
+        output
+            .split("\n")
+            .find { it.startsWith(triplePrefix) }
+            ?.substring(triplePrefix.length)
+            ?.trim()
 
-  if (triple == null) {
-    task.logger.warn(
-        "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)",
-    )
-  } else {
-    task.logger.info("Default rust target triple: $triple")
-  }
-  return triple
+    if (triple == null) {
+        task.logger.warn(
+            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)"
+        )
+    } else {
+        task.logger.info("Default rust target triple: $triple")
+    }
+    return triple
 }
