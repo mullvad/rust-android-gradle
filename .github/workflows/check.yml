@@ -15,6 +15,17 @@ on:
     - cron:  '20 10 * * 3'
 
 jobs:
+  check_lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE for the job.
+      - uses: actions/checkout@v6
+
+      - name: Check formatting
+        run: |
+          ./gradlew ktfmtCheck
+
   generate_versions:
     runs-on: ubuntu-latest
 
