@@ -51,6 +51,8 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val generateBuildId = property<Boolean>()
 
+    @Input val autoConfigureClangSys = property<Boolean>()
+
     @Input @Optional val extraCargoBuildArguments = listProperty<String>()
 
     @get:Inject abstract val projectLayout: ProjectLayout
@@ -248,18 +250,9 @@ abstract class CargoBuildTask : DefaultTask() {
                         // Set CLANG_PATH in the environment, so that bindgen (or anything
                         // else using clang-sys in a build.rs) works properly, and doesn't
                         // use host headers and such.
-                        //                val shouldConfigure = getFlagProperty(
-                        //                    "rust.autoConfigureClangSys",
-                        //                    "RUST_ANDROID_GRADLE_AUTO_CONFIGURE_CLANG_SYS",
-                        //                    // By default, only do this for non-desktop platforms.
-                        // If we're
-                        //                    // building for desktop, things should work out of the
-                        // box.
-                        //                    true
-                        //                )
-                        //                if (shouldConfigure) {
-                        environment("CLANG_PATH", cc)
-                        //                }
+                        if (autoConfigureClangSys.get()) {
+                            environment("CLANG_PATH", cc)
+                        }
 
                         // Configure our linker wrapper.
                         environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())

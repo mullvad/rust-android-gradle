@@ -339,6 +339,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                             generateBuildId.set(cargoExtension.generateBuildId)
                             extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
                             pythonCommand.set(cargoExtension.pythonCommand)
+                            autoConfigureClangSys.set(cargoExtension.autoConfigureClangSys)
 
                             this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
                             module.set(cargoExtension.module)

@@ -91,6 +91,16 @@ open class CargoExtension {
             else field
         }
 
+    val autoConfigureClangSys: Boolean
+        get() =
+            getFlagProperty(
+                "rust.autoConfigureClangSys",
+                "RUST_ANDROID_GRADLE_AUTO_CONFIGURE_CLANG_SYS",
+                // By default, only do this for non-desktop platforms. If we're
+                // building for desktop, things should work out of the box.
+                true,
+            )
+
     // Required so that we can parse the default triple out of `rustc --version --verbose`. Sadly,
     // there seems to be no way to get this information out of cargo directly. Failure to locate
     // this isn't fatal, however.
