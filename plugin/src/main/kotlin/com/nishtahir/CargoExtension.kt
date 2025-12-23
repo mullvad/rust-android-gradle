@@ -84,11 +84,11 @@ open class CargoExtension {
             }
         }
 
-    var rustupChannel: String = ""
+    var rustupChannel: String? = null
         get() {
-            return field.ifEmpty {
-                getProperty("rust.rustupChannel", "RUST_ANDROID_GRADLE_RUSTUP_CHANNEL") ?: ""
-            }
+            return if (field == null)
+                getProperty("rust.rustupChannel", "RUST_ANDROID_GRADLE_RUSTUP_CHANNEL")
+            else field
         }
 
     // Required so that we can parse the default triple out of `rustc --version --verbose`. Sadly,

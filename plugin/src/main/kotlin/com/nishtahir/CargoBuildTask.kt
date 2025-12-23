@@ -39,7 +39,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val module = property<String>()
 
-    @Input val rustupChannel = property<String>()
+    @Input @Optional val rustupChannel = property<String>()
 
     @Input @Optional val verbose = property<Boolean>()
 
@@ -109,27 +109,23 @@ abstract class CargoBuildTask : DefaultTask() {
         ndk: Ndk,
         projectProjectDir: File,
     ) {
-        execOperations
-            .exec { spec ->
-                with(spec) {
-                    standardOutput = System.out
-                    val module = File(module.get())
-                    workingDir =
-                        if (module.isAbsolute) {
-                            module
-                        } else {
-                            File(projectProjectDir, module.path)
-                        }
-                    workingDir = workingDir.canonicalFile
+        execOperations.exec { spec ->
+            with(spec) {
+                standardOutput = System.out
+                val module = File(module.get())
+
+                workingDir = if (module.isAbsolute) {
+                    module
+                } else {
+                    File(projectProjectDir, module.path)
+                }.canonicalFile
 
                     val theCommandLine = mutableListOf(cargoCommand.get())
 
-                    if (rustupChannel.get().isNotEmpty()) {
-                        val hasPlusSign = rustupChannel.get().startsWith("+")
-                        val maybePlusSign = if (!hasPlusSign) "+" else ""
-
-                        theCommandLine.add(maybePlusSign + rustupChannel.get())
-                    }
+                rustupChannel.orNull?.let { channel ->
+                    val normalizedChannel = "+" + channel.removePrefix("+")
+                    theCommandLine.add(normalizedChannel)
+                }
 
                     theCommandLine.add("build")
 
@@ -215,26 +211,12 @@ abstract class CargoBuildTask : DefaultTask() {
                         val ndkVersionMajor = ndk.versionMajor
                         val buildDir = rootBuildDirectory.get()
 
-                        val toolchainDirectory =
-                            if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
-                                environment("CARGO_NDK_MAJOR_VERSION", ndkVersionMajor)
-
-                                val hostTag =
-                                    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                                        if (Os.isArch("x86_64") || Os.isArch("amd64")) {
-                                            "windows-x86_64"
-                                        } else {
-                                            "windows"
-                                        }
-                                    } else if (Os.isFamily(Os.FAMILY_MAC)) {
-                                        "darwin-x86_64"
-                                    } else {
-                                        "linux-x86_64"
-                                    }
-                                File("$ndkPath/toolchains/llvm/prebuilt", hostTag)
-                            } else {
-                                toolchainDirectory.get()
-                            }
+                    val toolchainDirectory = if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
+                        environment("CARGO_NDK_MAJOR_VERSION", ndkVersionMajor)
+                        File("$ndkPath/toolchains/llvm/prebuilt", hostTag)
+                    } else {
+                        toolchainDirectory.get()
+                    }
 
                         val linkerWrapper =
                             if (System.getProperty("os.name").startsWith("Windows")) {
@@ -342,3 +324,14 @@ private fun getDefaultTargetTriple(
     }
     return triple
 }
+
+private val hostTag
+    get() = when {
+        Os.isFamily(Os.FAMILY_WINDOWS) -> {
+            if (Os.isArch("x86_64") || Os.isArch("amd64")) "windows-x86_64"
+            else "windows"
+        }
+
+        Os.isFamily(Os.FAMILY_MAC) -> "darwin-x86_64"
+        else -> "linux-x86_64"
+    }
