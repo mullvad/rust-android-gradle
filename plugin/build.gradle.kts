@@ -72,16 +72,14 @@ val generatedBuildResources = layout.buildDirectory.dir("build-resources")
 tasks {
     val genVersionsTask =
         register("generateVersions") {
-            println("Generating versions")
-            println("Generated Resources map: ${generatedResources.get()}")
+            inputs.property("version", version)
+            inputs.property("supportedVersions", supportedVersions)
+            outputs.dir(generatedResources)
             val outputFile =
                 generatedResources.map {
                     it.asFile.mkdirs()
                     it.file("versions.json").asFile
                 }
-            inputs.property("version", version)
-            inputs.property("supportedVersions", supportedVersions)
-            outputs.dir(generatedResources)
             outputFile
                 .get()
                 .writeText(
@@ -95,14 +93,13 @@ tasks {
     sourceSets { main { output.dir(mapOf("builtBy" to genVersionsTask), generatedResources) } }
 
     register("generateTestTasksJson") {
+        inputs.property("supportedVersions", supportedVersions)
+        outputs.dir(generatedBuildResources)
         val outputFile =
             generatedBuildResources.map {
                 it.asFile.mkdirs()
                 it.file("androidTestTasks.json").asFile
             }
-        inputs.property("supportedVersions", supportedVersions)
-        outputs.dir(generatedBuildResources)
-        outputFile.get().createNewFile()
         outputFile
             .get()
             .writeText(
