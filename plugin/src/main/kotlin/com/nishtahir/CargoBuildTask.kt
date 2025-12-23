@@ -109,23 +109,26 @@ abstract class CargoBuildTask : DefaultTask() {
         ndk: Ndk,
         projectProjectDir: File,
     ) {
-        execOperations.exec { spec ->
-            with(spec) {
-                standardOutput = System.out
-                val module = File(module.get())
+        execOperations
+            .exec { spec ->
+                with(spec) {
+                    standardOutput = System.out
+                    val module = File(module.get())
 
-                workingDir = if (module.isAbsolute) {
-                    module
-                } else {
-                    File(projectProjectDir, module.path)
-                }.canonicalFile
+                    workingDir =
+                        if (module.isAbsolute) {
+                                module
+                            } else {
+                                File(projectProjectDir, module.path)
+                            }
+                            .canonicalFile
 
                     val theCommandLine = mutableListOf(cargoCommand.get())
 
-                rustupChannel.orNull?.let { channel ->
-                    val normalizedChannel = "+" + channel.removePrefix("+")
-                    theCommandLine.add(normalizedChannel)
-                }
+                    rustupChannel.orNull?.let { channel ->
+                        val normalizedChannel = "+" + channel.removePrefix("+")
+                        theCommandLine.add(normalizedChannel)
+                    }
 
                     theCommandLine.add("build")
 
@@ -211,12 +214,13 @@ abstract class CargoBuildTask : DefaultTask() {
                         val ndkVersionMajor = ndk.versionMajor
                         val buildDir = rootBuildDirectory.get()
 
-                    val toolchainDirectory = if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
-                        environment("CARGO_NDK_MAJOR_VERSION", ndkVersionMajor)
-                        File("$ndkPath/toolchains/llvm/prebuilt", hostTag)
-                    } else {
-                        toolchainDirectory.get()
-                    }
+                        val toolchainDirectory =
+                            if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
+                                environment("CARGO_NDK_MAJOR_VERSION", ndkVersionMajor)
+                                File("$ndkPath/toolchains/llvm/prebuilt", hostTag)
+                            } else {
+                                toolchainDirectory.get()
+                            }
 
                         val linkerWrapper =
                             if (System.getProperty("os.name").startsWith("Windows")) {
@@ -326,12 +330,12 @@ private fun getDefaultTargetTriple(
 }
 
 private val hostTag
-    get() = when {
-        Os.isFamily(Os.FAMILY_WINDOWS) -> {
-            if (Os.isArch("x86_64") || Os.isArch("amd64")) "windows-x86_64"
-            else "windows"
-        }
+    get() =
+        when {
+            Os.isFamily(Os.FAMILY_WINDOWS) -> {
+                if (Os.isArch("x86_64") || Os.isArch("amd64")) "windows-x86_64" else "windows"
+            }
 
-        Os.isFamily(Os.FAMILY_MAC) -> "darwin-x86_64"
-        else -> "linux-x86_64"
-    }
+            Os.isFamily(Os.FAMILY_MAC) -> "darwin-x86_64"
+            else -> "linux-x86_64"
+        }
