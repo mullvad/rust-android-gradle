@@ -127,13 +127,13 @@ tasks {
         }
     }
 
-    supportedVersions.keys.forEach { androidVersion ->
-        val testTaskName = androidTestTaskName(androidVersion)
-        val jdkVersion = jdkVersionFor(androidVersion)
+    supportedVersions.keys.forEach { agpVersion ->
+        val testTaskName = androidTestTaskName(agpVersion)
+        val jdkVersion = jdkVersionFor(agpVersion)
         val versionSpecificTest =
             register<Test>(testTaskName) {
                 description =
-                    "Runs the multi-version tests for AGP $androidVersion (JDK version $jdkVersion)"
+                    "Runs the multi-version tests for AGP $agpVersion (JDK version $jdkVersion)"
                 group = "verification"
 
                 testClassesDirs = files(test.map { it.testClassesDirs })
@@ -141,7 +141,7 @@ tasks {
 
                 javaToolchains { javaLauncher = launcherFor { languageVersion = jdkVersion } }
 
-                systemProperty("org.gradle.android.testVersion", androidVersion)
+                systemProperty("org.gradle.android.testVersion", agpVersion)
             }
 
         check { dependsOn(versionSpecificTest) }
@@ -150,7 +150,7 @@ tasks {
 
 sourceSets { main { java { srcDirs("src/main/kotlin") } } }
 
-fun androidTestTaskName(androidVersion: String) = "testAndroid${normalizeVersion(androidVersion)}"
+fun androidTestTaskName(agpVersion: String) = "testAgp${normalizeVersion(agpVersion)}"
 
 fun normalizeVersion(version: String) = version.replace("[.\\-]".toRegex(), "_")
 
