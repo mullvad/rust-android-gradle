@@ -257,9 +257,6 @@ abstract class CargoBuildTask : DefaultTask() {
 
                     commandLine = theCommandLine
                 }
-                //            if (cargoExtension.exec != null) {
-                //                (cargoExtension.exec!!)(spec, toolchain)
-                //            }
             }
             .assertNormalExitValue()
     }

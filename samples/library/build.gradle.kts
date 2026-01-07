@@ -39,10 +39,6 @@ cargo {
         noDefaultBut("foo", "bar")
         all()
     }
-
-    exec = { spec, toolchain ->
-        spec.environment("TEST", "test")
-    }
 }
 
 java {
