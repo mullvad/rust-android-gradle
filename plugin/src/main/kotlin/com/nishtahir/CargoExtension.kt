@@ -46,11 +46,6 @@ open class CargoExtension {
             }
         }
 
-    // It would be nice to use a receiver here, but there are problems interoperating with Groovy
-    // and Kotlin that are just not worth working out.  Another JVM language, yet another dynamic
-    // invoke solution :(
-    var exec: ((ExecSpec, Toolchain) -> Unit)? = null
-
     var featureSpec: FeatureSpec = FeatureSpec()
 
     @Suppress("unused")

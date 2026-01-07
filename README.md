@@ -382,29 +382,6 @@ cargo {
 
 Generate a build-id for the shared library during the link phase.
 
-### exec
-
-This is a callback taking the `ExecSpec` we're going to use to invoke `cargo build`, and
-the relevant toolchain. It's called for each invocation of `cargo build`. This generally
-is useful for the following scenarios:
-
-1. Specifying target-specific environment variables.
-1. Adding target-specific flags to the command line.
-1. Removing/modifying environment variables or command line options the rust-android-gradle plugin would
-   provide by default.
-
-```groovy
-cargo {
-    exec { spec, toolchain ->
-        if (toolchain.target != "x86_64-apple-darwin") {
-            // Don't statically link on macOS desktop builds, for some
-            // entirely hypothetical reason.
-            spec.environment("EXAMPLELIB_STATIC", "1")
-        }
-    }
-}
-```
-
 ## Specifying NDK toolchains
 
 The plugin can either use prebuilt NDK toolchain binaries, or search for (and if missing, build)
