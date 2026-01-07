@@ -7,6 +7,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
@@ -36,6 +37,9 @@ inline fun <reified T : Any> DefaultTask.listProperty(): ListProperty<T> =
 
 inline fun <reified T : Any> DefaultTask.setProperty(): SetProperty<T> =
     project.objects.setProperty(T::class.java)
+
+inline fun <reified T : Any, reified R : Any> DefaultTask.mapProperty(): MapProperty<T, R> =
+    project.objects.mapProperty<T, R>(T::class.java, R::class.java)
 
 fun CharSequence.capitalized() =
     toString().replaceFirstChar { if (it.isLowerCase()) it.uppercase() else it.toString() }

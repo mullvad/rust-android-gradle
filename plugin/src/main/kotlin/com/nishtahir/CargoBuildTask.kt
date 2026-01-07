@@ -55,6 +55,8 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input @Optional val extraCargoBuildArguments = listProperty<String>()
 
+    @Input val environmentOverrides = mapProperty<String, String>()
+
     @get:Inject abstract val projectLayout: ProjectLayout
 
     @get:Inject abstract val execOperations: ExecOperations
@@ -186,29 +188,10 @@ abstract class CargoBuildTask : DefaultTask() {
                     // the underlying `cargo build` invocation.
                     val toolchainTarget = toolchain.target.uppercase().replace('-', '_')
 
-                    // TODO REMOVE PROJECT USAGE
-                    //                val prefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
-                    //
-                    //                // For
-                    // ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_x_KEY=VALUE, set
-                    // KEY=VALUE.
-                    //                task.logger.info("Passing through project properties with
-                    // prefix
-                    // '${prefix}' (environment variables with prefix
-                    // 'ORG_GRADLE_PROJECT_${prefix}'")
-                    //                project.properties.forEach { (key, value) ->
-                    //                    if (key.startsWith(prefix)) {
-                    //                        val realKey = key.substring(prefix.length)
-                    //                        project.logger.debug(
-                    //                            "Passing through environment variable '{}' as
-                    // '{}={}'",
-                    //                            key,
-                    //                            realKey,
-                    //                            value,
-                    //                        )
-                    //                        environment(realKey, value)
-                    //                    }
-                    //                }
+                    environmentOverrides.get().forEach { (key, value) ->
+                        project.logger.debug("Overriding environment variable '{}={}'", key, value)
+                        environment(key, value)
+                    }
 
                     // Cross-compiling to Android requires toolchain massaging.
                     if (toolchain.type != ToolchainType.DESKTOP) {

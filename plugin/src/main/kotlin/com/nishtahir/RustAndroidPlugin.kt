@@ -305,6 +305,23 @@ open class RustAndroidPlugin : Plugin<Project> {
                                 ?: "${cargoExtension.module!!}/target"
                         )
 
+                        val toolchainTarget = theToolchain.target.uppercase().replace('-', '_')
+
+                        val prefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
+                        // For ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_x_KEY=VALUE, set
+                        // KEY=VALUE.
+                        logger.info(
+                            "Passing through project properties with prefix '${prefix}' (environment variables with prefix 'ORG_GRADLE_PROJECT_${prefix}'"
+                        )
+                        val overrides =
+                            project.properties
+                                .filter { (key, _) -> key.startsWith(prefix) }
+                                .mapKeys { (key, _) -> // Remove the prefix
+                                    key.substring(prefix.length)
+                                }
+                                .mapValues { it.toString() }
+                        environmentOverrides.set(overrides)
+
                         rustcCommand.set(cargoExtension.rustcCommand)
                         cargoCommand.set(cargoExtension.cargoCommand)
                         profile.set(cargoExtension.profile)
