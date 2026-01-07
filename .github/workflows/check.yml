@@ -15,7 +15,7 @@ on:
     - cron:  '20 10 * * 3'
 
 jobs:
-  check_lint:
+  ktfmt_check:
     runs-on: ubuntu-latest
 
     steps:
