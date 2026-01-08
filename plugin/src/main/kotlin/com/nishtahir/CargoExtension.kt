@@ -1,10 +1,8 @@
 package com.nishtahir
 
-import org.gradle.api.Action
-import org.gradle.api.GradleException
-import org.gradle.process.ExecSpec
 import java.io.File
 import java.util.Properties
+import org.gradle.api.GradleException
 
 sealed class Features {
     class All() : Features()
@@ -32,7 +30,6 @@ open class CargoExtension {
     var module: String? = null
     var libname: String? = null
     var targets: List<String>? = null
-    var prebuiltToolchains: Boolean? = null
     var profile: String = "debug"
     var verbose: Boolean? = null
     var targetDirectory: String? = null
@@ -41,11 +38,14 @@ open class CargoExtension {
     var apiLevels: Map<String, Int> = mapOf()
     var extraCargoBuildArguments: List<String>? = null
     var generateBuildId: Boolean = false
+    var pythonCommand: String = ""
+        get() {
+            return field.ifEmpty {
+                getProperty("rust.pythonCommand", "RUST_ANDROID_GRADLE_PYTHON_COMMAND") ?: "python"
+            }
+        }
 
-    // It would be nice to use a receiver here, but there are problems interoperating with Groovy
-    // and Kotlin that are just not worth working out.  Another JVM language, yet another dynamic
-    // invoke solution :(
-    var exec: ((ExecSpec, Toolchain) -> Unit)? = null
+    var environmentalOverrides = mutableMapOf<String, String>()
 
     var featureSpec: FeatureSpec = FeatureSpec()
 
@@ -80,19 +80,22 @@ open class CargoExtension {
             }
         }
 
-    var rustupChannel: String = ""
+    var rustupChannel: String? = null
         get() {
-            return field.ifEmpty {
-                getProperty("rust.rustupChannel", "RUST_ANDROID_GRADLE_RUSTUP_CHANNEL") ?: ""
-            }
+            return if (field == null)
+                getProperty("rust.rustupChannel", "RUST_ANDROID_GRADLE_RUSTUP_CHANNEL")
+            else field
         }
 
-    var pythonCommand: String = ""
-        get() {
-            return field.ifEmpty {
-                getProperty("rust.pythonCommand", "RUST_ANDROID_GRADLE_PYTHON_COMMAND") ?: "python"
-            }
-        }
+    val autoConfigureClangSys: Boolean
+        get() =
+            getFlagProperty(
+                "rust.autoConfigureClangSys",
+                "RUST_ANDROID_GRADLE_AUTO_CONFIGURE_CLANG_SYS",
+                // By default, only do this for non-desktop platforms. If we're
+                // building for desktop, things should work out of the box.
+                true,
+            )
 
     // Required so that we can parse the default triple out of `rustc --version --verbose`. Sadly,
     // there seems to be no way to get this information out of cargo directly. Failure to locate
@@ -115,7 +118,9 @@ open class CargoExtension {
         if (propVal == null || propVal == "") {
             return ifUnset
         }
-        throw GradleException("Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set")
+        throw GradleException(
+            "Illegal value for property \"$camelCaseName\" / \"$snakeCaseName\". Must be 0/1/true/false if set"
+        )
     }
 
     internal fun getProperty(camelCaseName: String, snakeCaseName: String): String? {

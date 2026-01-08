@@ -1,7 +1,7 @@
 package com.nishtahir
 
 import io.kotest.core.TestConfiguration
-import io.kotest.core.test.TestResult
+import io.kotest.engine.test.TestResult
 import java.io.File
 
 fun TestConfiguration.tempDirectory(prefix: String? = null, suffix: String? = null): File {

@@ -1,12 +1,12 @@
 plugins {
-    id("com.android.application") version("8.7.3")
+    id("com.android.application") version("8.12.3")
     id("me.sigptr.rust-android")
 }
 
 android {
     namespace = "com.nishtahir.androidrust"
     compileSdk = 35
-    ndkVersion = "27.2.12479018"
+    ndkVersion = "27.3.13750724"
 
     defaultConfig {
         applicationId = "com.nishtahir.androidrust"
@@ -36,10 +36,6 @@ cargo {
         defaultAnd("foo", "bar")
         noDefaultBut("foo", "bar")
         all()
-    }
-
-    exec = { spec, toolchain ->
-        spec.environment("TEST", "test")
     }
 }
 

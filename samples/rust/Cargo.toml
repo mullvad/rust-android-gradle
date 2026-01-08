@@ -5,7 +5,7 @@ authors = ["Nick Alexander <nalexander@mozilla.com>"]
 edition = "2021"
 
 [dependencies]
-jni = "0.5.2"
+jni = "0.21.1"
 
 [lib]
 crate-type = ["staticlib", "dylib"]
@@ -15,3 +15,4 @@ default = ["foo"]
 foo = []
 bar = []
 
+[workspace]

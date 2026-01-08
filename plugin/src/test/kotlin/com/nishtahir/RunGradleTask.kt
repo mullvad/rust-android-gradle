@@ -1,9 +1,9 @@
 package com.nishtahir
 
+import java.io.File
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
-import java.io.File
 
 val systemDefaultAndroidSdkHome = run {
     val os = System.getProperty("os.name").lowercase()
@@ -43,11 +43,12 @@ class RunGradleTask(
         }
     }
 
-    fun build(): BuildResult = GradleRunner.create()
-        .withEnvironment(environment)
-        .withGradleVersion(gradleVersionString)
-        .forwardOutput()
-        .withProjectDir(projectDir)
-        .withArguments(listOf(taskName) + arguments)
-        .build()
+    fun build(): BuildResult =
+        GradleRunner.create()
+            .withEnvironment(environment)
+            .withGradleVersion(gradleVersionString)
+            .forwardOutput()
+            .withProjectDir(projectDir)
+            .withArguments(listOf(taskName) + arguments)
+            .build()
 }
