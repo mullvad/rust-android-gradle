@@ -42,7 +42,7 @@ version = versionProperties["version"]!!
 val isCI = (System.getenv("CI") ?: "false").toBoolean()
 
 // Maps supported Android plugin versions to the versions of Gradle that support it
-val supportedVersions = mapOf("8.13" to listOf("8.13", "8.13"), "8.12" to listOf("8.13"))
+val supportedVersions = mapOf("8.13" to listOf("8.13"), "8.12" to listOf("8.13"))
 
 val localRepo = file("${layout.buildDirectory.get()}/local-repo")
 
