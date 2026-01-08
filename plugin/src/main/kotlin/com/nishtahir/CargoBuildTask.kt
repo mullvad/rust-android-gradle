@@ -189,7 +189,7 @@ abstract class CargoBuildTask : DefaultTask() {
                     val toolchainTarget = toolchain.target.uppercase().replace('-', '_')
 
                     environmentOverrides.get().forEach { (key, value) ->
-                        project.logger.debug("Overriding environment variable '{}={}'", key, value)
+                        logger.debug("Overriding environment variable '{}={}'", key, value)
                         environment(key, value)
                     }
 

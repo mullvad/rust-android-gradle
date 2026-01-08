@@ -45,6 +45,8 @@ open class CargoExtension {
             }
         }
 
+    var environmentalOverrides = mutableMapOf<String, String>()
+
     var featureSpec: FeatureSpec = FeatureSpec()
 
     @Suppress("unused")
