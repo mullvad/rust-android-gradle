@@ -10,6 +10,13 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace == "net.mullvad") {
+                useModule("net.mullvad.rust-android:rust-android:+")
+            }
+        }
+    }
 }
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
