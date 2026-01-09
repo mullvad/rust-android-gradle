@@ -3,7 +3,6 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    `maven-publish`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.gradle.plugin.publish)
@@ -12,16 +11,16 @@ plugins {
 }
 
 gradlePlugin {
-    website = "https://github.com/bell345/rust-android-gradle"
-    vcsUrl = "https://github.com/bell345/rust-android-gradle.git"
+    website = "https://github.com/mullvad/rust-android-gradle"
+    vcsUrl = "https://github.com/mullvad/rust-android-gradle.git"
     plugins {
-        create("rustAndroidGradlePlugin") {
-            id = "me.sigptr.rust-android"
-            implementationClass = "com.nishtahir.RustAndroidPlugin"
+        register("rustAndroidGradlePlugin") {
+            id = "net.mullvad.rust-android"
             displayName = "Plugin for building Rust with Cargo in Android projects"
             description =
                 "A plugin that helps build Rust JNI libraries with Cargo for use in Android projects."
             tags = listOf("rust", "cargo", "android")
+            implementationClass = "net.mullvad.androidrust.RustAndroidPlugin"
         }
     }
 }
@@ -35,7 +34,7 @@ ktfmt {
 val versionProperties =
     Properties().apply { load(FileInputStream("${rootProject.projectDir}/version.properties")) }
 
-group = "me.sigptr"
+group = "net.mullvad"
 
 version = versionProperties["version"]!!
 

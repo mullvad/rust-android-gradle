@@ -12,8 +12,8 @@ pluginManagement {
     }
     resolutionStrategy {
         eachPlugin {
-            if (requested.id.namespace == "me.sigptr") {
-                useModule("me.sigptr.rust-android:rust-android:+")
+            if (requested.id.namespace == "net.mullvad") {
+                useModule("net.mullvad.rust-android:rust-android:+")
             }
         }
     }
@@ -28,6 +28,6 @@ dependencyResolutionManagement {
 
 includeBuild("../..") {
     dependencySubstitution {
-        substitute(module("me.sigptr.rust-android:rust-android")).using(project(":plugin"))
+        substitute(module("net.mullvad.rust-android:rust-android")).using(project(":plugin"))
     }
 }
