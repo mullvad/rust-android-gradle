@@ -10,13 +10,6 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == "me.sigptr") {
-                useModule("me.sigptr.rust-android:rust-android:+")
-            }
-        }
-    }
 }
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
@@ -28,6 +21,6 @@ dependencyResolutionManagement {
 
 includeBuild("../..") {
     dependencySubstitution {
-        substitute(module("me.sigptr.rust-android:rust-android")).using(project(":plugin"))
+        substitute(module("net.mullvad.rust-android:rust-android")).using(project(":plugin"))
     }
 }

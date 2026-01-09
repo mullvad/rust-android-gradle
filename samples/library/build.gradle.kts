@@ -1,12 +1,12 @@
 plugins {
     id("com.android.library") version("8.7.3")
-    id("me.sigptr.rust-android")
+    id("net.mullvad.rust-android")
 }
 
 version = "1.0"
 
 android {
-    namespace = "com.nishtahir.library"
+    namespace = "net.mullvad.library"
     compileSdk = 35
     ndkVersion = "27.3.13750724"
 
