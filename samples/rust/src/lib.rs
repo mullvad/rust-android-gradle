@@ -17,7 +17,7 @@ pub extern "C" fn invokeCallbackViaJNA(callback: Callback) {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_nishtahir_androidrust_MainActivity_invokeCallbackViaJNI(
+pub extern "C" fn Java_net_mullvad_androidrust_MainActivity_invokeCallbackViaJNI(
     mut env: JNIEnv,
     _class: JClass,
     callback: JObject

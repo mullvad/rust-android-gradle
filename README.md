@@ -7,8 +7,8 @@ with a focus on up-to-date Gradle plugin authoring practices. Support for older 
 to focus on the upcoming Gradle 9.0 release, which removes several APIs that were relied upon by the upstream plugin.
 
 <p align="left">
-    <a alt="Version badge" href="https://plugins.gradle.org/plugin/me.sigptr.rust-android">
-        <img src="https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/me/sigptr/rust-android/me.sigptr.rust-android.gradle.plugin/maven-metadata.xml.svg?label=rust-android-gradle&colorB=brightgreen" /></a>
+    <a alt="Version badge" href="https://plugins.gradle.org/plugin/net.mullvad.rust-android">
+        <img src="https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/net/mullvad/rust-android/net.mullvad.rust-android.gradle.plugin/maven-metadata.xml.svg?label=rust-android-gradle&colorB=brightgreen" /></a>
 </p>
 
 # Usage
@@ -30,7 +30,7 @@ In your project's `build.gradle.kts`, declare the `rust-android-gradle` plugin i
 
 ```kotlin
 plugins {
-    id("me.sigptr.rust-android") version("1.0.0")
+    id("net.mullvad.rust-android") version("1.0.0")
 }
 
 cargo {
@@ -597,7 +597,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'me.sigptr.rust-android:plugin:0.10.0'
+        classpath 'net.mullvad.rust-android:plugin:0.10.0'
     }
 }
 ```

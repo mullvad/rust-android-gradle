@@ -1,15 +1,15 @@
 plugins {
     id("com.android.application") version("8.12.3")
-    id("me.sigptr.rust-android")
+    id("net.mullvad.rust-android")
 }
 
 android {
-    namespace = "com.nishtahir.androidrust"
+    namespace = "net.mullvad.androidrust"
     compileSdk = 35
     ndkVersion = "27.3.13750724"
 
     defaultConfig {
-        applicationId = "com.nishtahir.androidrust"
+        applicationId = "net.mullvad.androidrust"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
