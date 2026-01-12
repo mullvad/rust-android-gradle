@@ -26,7 +26,10 @@ gradlePlugin {
     }
 }
 
-signing { setRequired { gradle.taskGraph.hasTask(":plugin:publishPlugins") } }
+signing {
+    setRequired { gradle.taskGraph.hasTask(":plugin:publishPlugins") }
+    useGpgCmd()
+}
 
 ktfmt {
     kotlinLangStyle()
