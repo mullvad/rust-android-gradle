@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.gradle.plugin.publish)
     alias(libs.plugins.gradle.test.retry)
     alias(libs.plugins.ktfmt)
+    signing
 }
 
 gradlePlugin {
@@ -24,6 +25,8 @@ gradlePlugin {
         }
     }
 }
+
+signing { setRequired { gradle.taskGraph.hasTask(":plugin:publishPlugins") } }
 
 ktfmt {
     kotlinLangStyle()
