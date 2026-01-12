@@ -26,12 +26,23 @@ gradlePlugin {
     }
 }
 
-signing { setRequired { gradle.taskGraph.hasTask(":plugin:publishPlugins") } }
+signing { useGpgCmd() }
 
 ktfmt {
     kotlinLangStyle()
     maxWidth.set(100)
     removeUnusedImports.set(true)
+}
+
+val codeSigningEnabledProvider =
+    providers
+        .gradleProperty("mullvad.rust-android-gradle.codeSigningEnabled")
+        .map { it.toBoolean() }
+        .orElse(false)
+
+tasks.withType<Sign>().configureEach {
+    val enabled = codeSigningEnabledProvider
+    onlyIf("signing is enabled") { enabled.get() }
 }
 
 val versionProperties =
