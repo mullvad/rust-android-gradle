@@ -4,7 +4,7 @@ Cross compile Rust Cargo projects for Android targets.
 
 This is a fork of the original [mozilla/rust-android-gradle](https://github.com/mozilla/rust-android-gradle)
 with a focus on up-to-date Gradle plugin authoring practices. Support for older AGP versions is sacrificed
-to focus on the upcoming Gradle 9.0 release, which removes several APIs that were relied upon by the upstream plugin.
+in favor of focusing on Gradle 9.0 and later, which removes several APIs that were relied upon by the upstream plugin.
 
 <p align="left">
     <a alt="Version badge" href="https://plugins.gradle.org/plugin/net.mullvad.rust-android">
@@ -30,7 +30,7 @@ In your project's `build.gradle.kts`, declare the `rust-android-gradle` plugin i
 
 ```kotlin
 plugins {
-    id("net.mullvad.rust-android") version("1.0.0")
+    id("net.mullvad.rust-android") version("0.10.0")
 }
 
 cargo {
@@ -46,19 +46,13 @@ rustup target add x86_64-linux-android
 rustup target add aarch64-linux-android
 ```
 
-Now you need to make sure that the `cargoBuild` task is a dependency of your `generate*Assets` tasks through the following segment in your `build.gradle.kts`:
+Now you need to make sure that the `cargoBuild` task is a dependency of your `merge*JniLibFolders` tasks through the following segment in your `build.gradle.kts`:
 
 ```kotlin
-afterEvaluate {
-   fun CharSequence.capitalized() =
-      toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-
-   /* replace applicationVariants with libraryVariants if compiling an Android library */
-   android.applicationVariants.forEach { variant ->
-      val productFlavor = variant.productFlavors.joinToString("") { it.name.capitalized() }
-      val buildType = variant.buildType.name.capitalized()
-      tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
-   }
+val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
+tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach {
+    inputs.dir(rustJniLibsDir)
+    dependsOn("cargoBuild")
 }
 ```
 
@@ -171,7 +165,7 @@ to `debug`!*
 The path to the Rust library to build with Cargo; required.  `module` can be absolute; if it is not,
 it is interpreted as a path relative to the Gradle `projectDir`.
 
-```groovy
+```kotlin
 cargo {
     // Note: path is either absolute, or relative to the gradle project's `projectDir`.
     module = "../rust"
@@ -198,7 +192,7 @@ name = "test"
 
 In `build.gradle`:
 
-```groovy
+```kotlin
 cargo {
     libname = "test"
 }
@@ -209,27 +203,10 @@ cargo {
 A list of Android targets to build with Cargo; required.
 See [Supported Targets](#supported-targets) for a list of supported values.
 
-```groovy
+```kotlin
 cargo {
-    /* groovy */
-    targets = ['arm', 'x86', 'linux-x86-64']
     /* kotlin */
     targets = listOf("arm", "x86", "linux-x86-64")
-}
-```
-
-### prebuiltToolchains
-
-When set to `true` (which requires NDK version 19+), use the prebuilt toolchains bundled with the
-NDK. When set to `false`, generate per-target architecture standalone NDK toolchains using
-`make_standalone_toolchain.py`.  When unset, use the prebuilt toolchains if the NDK version is 19+,
-and fall back to generated toolchains for older NDK versions.
-
-Defaults to `null`.
-
-```groovy
-cargo {
-    prebuiltToolchains = true
 }
 ```
 
@@ -242,7 +219,7 @@ the log level is at least `INFO`.  In practice, this makes `./gradlew ... --info
 
 Defaults to `null`.
 
-```groovy
+```kotlin
 cargo {
     verbose = true
 }
@@ -250,11 +227,11 @@ cargo {
 
 ### profile
 
-The Cargo [release profile](https://doc.rust-lang.org/book/second-edition/ch14-01-release-profiles.html#customizing-builds-with-release-profiles) to build.
+The Cargo [release profile](https://doc.rust-lang.org/book/second-edition/ch14-01-release-profiles.html#customizing-builds-with-release-profiles) to build (custom profiles are also supported).
 
 Defaults to `"debug"`.
 
-```groovy
+```kotlin
 cargo {
     profile = 'release'
 }
@@ -267,7 +244,7 @@ Set the Cargo [features](https://doc.rust-lang.org/cargo/reference/manifest.html
 Defaults to passing no flags to `cargo`.
 
 To pass `--all-features`, use
-```groovy
+```kotlin
 cargo {
     features {
         all()
@@ -276,7 +253,7 @@ cargo {
 ```
 
 To pass an optional list of `--features`, use
-```groovy
+```kotlin
 cargo {
     features {
         defaultAnd("x")
@@ -286,7 +263,7 @@ cargo {
 ```
 
 To pass `--no-default-features`, and an optional list of replacement `--features`, use
-```groovy
+```kotlin
 cargo {
     features {
         noDefaultBut()
@@ -314,7 +291,7 @@ You may also override `CARGO_TARGET_DIR` variable by setting `rust.cargoTargetDi
 information to cargo itself. That said, it can be used to control where we search for the built
 library on a per-machine basis.
 
-```groovy
+```kotlin
 cargo {
     // Note: path is either absolute, or relative to the gradle project's `projectDir`.
     targetDirectory = "path/to/workspace/root/target"
@@ -327,9 +304,9 @@ Which Cargo outputs to consider JNI libraries.
 
 Defaults to `["lib${libname}.so", "lib${libname}.dylib", "{$libname}.dll"]`.
 
-```groovy
+```kotlin
 cargo {
-    targetIncludes = ["libnotlibname.so"]
+    targetIncludes = arrayOf("libnotlibname.so")
 }
 ```
 
@@ -340,7 +317,7 @@ updated less frequently.  For example, SDK API versions 18, 19, and 20 all targe
 
 Defaults to the minimum SDK version of the Android project's default configuration.
 
-```groovy
+```kotlin
 cargo {
     apiLevel = 21
 }
@@ -350,15 +327,8 @@ You may specify the API level per target in `targets` using the `apiLevels` opti
 `apiLevel` and `apiLevels` may be specified. `apiLevels` must have an entry for each target in
 `targets`.
 
-```groovy
+```kotlin
 cargo {
-    /* groovy */
-    targets = ["arm", "x86_64"]
-    apiLevels = [
-        "arm": 16,
-        "x86_64": 21,
-    ]
-    /* kotlin */
     targets = listOf("arm", "x86_64")
     apiLevels = mapOf(
         "arm" to 16,
@@ -372,36 +342,30 @@ cargo {
 Sometimes, you need to do things that the plugin doesn't anticipate.  Use `extraCargoBuildArguments`
 to append a list of additional arguments to each `cargo build` invocation.
 
-```groovy
+```kotlin
 cargo {
-    extraCargoBuildArguments = ["a", "list", "of", "strings"]
+    extraCargoBuildArguments = listOf("--locked")
 }
 ```
+
+### environmentalOverrides
+
+You can set environment variables for the Cargo invocation by setting values in the 
+`environmentalOverrides` map (or setting the property to a new map object).
+
+
+```kotlin
+cargo {
+    environmentalOverrides["RUSTFLAGS"] = "-Z sanitizer=address"
+}
+```
+
+Note that environment variables set as described in the [Passing arguments to cargo](#passing-arguments-to-cargo) section
+will overwrite variables set with `environmentalOverrides`.
 
 ### generateBuildId
 
 Generate a build-id for the shared library during the link phase.
-
-## Specifying NDK toolchains
-
-The plugin can either use prebuilt NDK toolchain binaries, or search for (and if missing, build)
-NDK toolchains as generated by `make_standalone_toolchain.py`.
-
-A prebuilt NDK toolchain will be used if:
-1. `rust.prebuiltToolchain=true` in the per-(multi-)project `${rootDir}/local.properties`
-1. `prebuiltToolchain=true` in the `cargo { ... }` block (if not overridden by `local.properties`)
-1. The discovered NDK is version 19 or higher (if not overridden per above)
-
-The toolchains are rooted in a single Android NDK toolchain directory.  In order of preference, the
-toolchain root directory is determined by:
-
-1. `rust.androidNdkToolchainDir` in the per-(multi-)project `${rootDir}/local.properties`
-1. the environment variable `ANDROID_NDK_TOOLCHAIN_DIR`
-1. `${System.getProperty(java.io.tmpdir)}/rust-android-ndk-toolchains`
-
-Note that the Java system property `java.io.tmpdir` is not necessarily `/tmp`, including on macOS hosts.
-
-Each target architecture toolchain is named like `$arch-$apiLevel`: for example, `arm-16` or `arm64-21`.
 
 ## Specifying local targets
 
@@ -550,23 +514,6 @@ includeBuild('../rust-android-gradle') {
 
 # Publishing
 
-## Automatically via the Bump version Github Actions workflow
-
-You will need to be a collaborator.  First, manually invoke the [Bump version Github Actions
-workflow](https://github.com/mozilla/rust-android-gradle/actions/workflows/bump.yml).  Specify a
-version (like "x.y.z", without quotes) and a single line changelog entry.  (This entry will have a
-dash prepended, so that it would look normal in a list.  This is working around [the lack of a
-multi-line input in Github
-Actions](https://github.community/t/multiline-inputs-for-workflow-dispatch/163906).)  This will push
-a preparatory commit updating version numbers and the changelog like [this
-one](https://github.com/mozilla/rust-android-gradle/commit/2a637d1797a5d0b5063b8d2f0a3d4a4938511154),
-and make a **draft** Github Release with a name like `vx.y.z`.  After verifying that tests pass,
-navigate to [the releases panel](https://github.com/mozilla/rust-android-gradle/releases) and edit
-the release, finally pressing "Publish release".  The release Github workflow will build and publish
-the plugin, although it may take some days for it to be reflected on the Gradle plugin portal.
-
-## By hand
-
 You will need credentials to publish to the [Gradle plugin portal](https://plugins.gradle.org/) in
 the appropriate place for the [`plugin-publish`](https://plugins.gradle.org/docs/publish-plugin) to
 find them.  Usually, that's in `~/.gradle/gradle.properties`.
@@ -582,6 +529,15 @@ Publishing artifact build/libs/plugin-0.8.1-sources.jar
 Publishing artifact build/libs/plugin-0.8.1-javadoc.jar
 Publishing artifact build/publish-generated-resources/pom.xml
 Activating plugin org.mozilla.rust-android-gradle.rust-android version 0.8.1
+```
+
+Furthermore, all published artifacts to the Gradle plugin portal must be signed. This is done
+through the [`signing`](https://docs.gradle.org/current/userguide/signing_plugin.html#signing_plugin) plugin,
+and the following values must be set in e.g. `/.gradle/gradle.properties`:
+
+```
+mullvad.rust-android-gradle.codeSigningEnabled=true
+signing.gnupg.keyName=[signing key fingerprint]
 ```
 
 ## Real projects

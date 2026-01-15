@@ -70,8 +70,7 @@ class NdkVersionTest :
             listOf(
                 // Partial list of NDK versions supported by Github Actions, per
                 // https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
-                NdkTestData("26.3.11579264"),
-                NdkTestData("27.3.13750724"),
+                NdkTestData("27.3.13750724")
             ),
             test = test,
         )

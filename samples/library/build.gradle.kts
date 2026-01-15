@@ -55,13 +55,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
-afterEvaluate {
-    fun CharSequence.capitalized() =
-        toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-
-    android.libraryVariants.forEach { variant ->
-        val productFlavor = variant.productFlavors.joinToString("") { it.name.capitalized() }
-        val buildType = variant.buildType.name.capitalized()
-        tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
-    }
+val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
+tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach {
+    inputs.dir(rustJniLibsDir)
+    dependsOn("cargoBuild")
 }
