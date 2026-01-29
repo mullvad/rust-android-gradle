@@ -55,7 +55,7 @@ version = versionProperties["version"]!!
 val isCI = (System.getenv("CI") ?: "false").toBoolean()
 
 // Maps supported Android plugin versions to the versions of Gradle that support it
-val supportedVersions = mapOf("8.13" to listOf("8.13"), "8.12" to listOf("8.13"))
+val supportedVersions = mapOf("9.0" to listOf("9.2.1"), "8.13" to listOf("8.13"), "8.12" to listOf("8.13"))
 
 val localRepo = file("${layout.buildDirectory.get()}/local-repo")
 
@@ -170,9 +170,9 @@ fun normalizeVersion(version: String) = version.replace("[.\\-]".toRegex(), "_")
 @Suppress("UseRequire")
 fun jdkVersionFor(agpVersion: String) =
     JavaLanguageVersion.of(
-        if (agpVersion.split('.')[0].toInt() >= 8) {
-            17
-        } else {
-            throw IllegalArgumentException("AGP version must be >=8")
+        when {
+            agpVersion.split('.')[0].toInt() >= 9 -> 21
+            agpVersion.split('.')[0].toInt() >= 8 -> 17
+            else -> throw IllegalArgumentException("AGP version must be >=8")
         }
     )

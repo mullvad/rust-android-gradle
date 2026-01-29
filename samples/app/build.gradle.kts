@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version("8.12.3")
+    id("com.android.application") version("9.0.0")
     id("net.mullvad.rust-android")
 }
 
