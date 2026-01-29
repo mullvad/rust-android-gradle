@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity(), JNACallback, JNICallback {
             // But when running as a unit test, we need to fish the libraries from
             // Java resources and configure the classpath.  We use JNA for that.
             val LIBRARY = com.sun.jna.NativeLibrary.getInstance("rust")
+            println("LIBRARY: ${LIBRARY.file.path}")
             System.load(LIBRARY.file.path)
         }
 

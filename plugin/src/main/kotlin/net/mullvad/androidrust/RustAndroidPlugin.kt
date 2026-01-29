@@ -204,7 +204,8 @@ open class RustAndroidPlugin : Plugin<Project> {
             cargoExtension.localProperties.getProperty("rust.targets.${project.name}")
                 ?: cargoExtension.localProperties.getProperty("rust.targets")
         if (localTargets != null) {
-            cargoExtension.targets = localTargets.split(',').map { it.trim() }
+            cargoExtension.targets =
+                localTargets.split(',').map { it.trim() }.onEach { println("TARGET: $it") }
         }
 
         if (cargoExtension.targets == null) {

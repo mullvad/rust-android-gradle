@@ -20,17 +20,25 @@ android {
     }
 
     sourceSets {
-        getByName("test") {
-            //            resources {
-            //                srcDir(layout.buildDirectory.dir("rustJniLibs/desktop"))
-            //            }
-        }
         getByName("main")
+    }
+    testOptions.unitTests.isIncludeAndroidResources = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources
+            .getByName("test")
+            .addStaticSourceDirectory(layout.buildDirectory.get().dir("rustJniLibs/desktop").asFile.path)
     }
 }
 
 cargo {
     module = "../rust"
+    /*
+    For MacBook we need to change the target
+    targets = listOf("darwin-aarch64")
+     */
     targets = listOf("x86_64", "linux-x86-64")
     libname = "rust"
 }
@@ -53,8 +61,8 @@ java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 val jnaForTest by configurations.creating
 
 dependencies {
-    jnaForTest("net.java.dev.jna:jna:5.6.0@jar")
-    implementation("net.java.dev.jna:jna:5.6.0@aar")
+    jnaForTest("net.java.dev.jna:jna:5.18.1@jar")
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
 
     androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2") {
         exclude("com.android.support:support-annotations")
@@ -79,7 +87,7 @@ dependencies {
     // avoiding other configurations from being resolved.  Tricky!
     testImplementation(files(jnaForTest.copyRecursive().files))
     // testImplementation("androidx.test.ext:junit:$versions.androidx_junit")
-    testImplementation("org.robolectric:robolectric:4.14")
+    testImplementation("org.robolectric:robolectric:4.16.1")
 }
 
 val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
