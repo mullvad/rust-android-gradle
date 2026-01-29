@@ -22,11 +22,17 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = false
-//      proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+      //      proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
     }
   }
+<<<<<<< HEAD
 
     ndkPath =
+||||||| parent of 95dbd10 (test)
+
+    ndkPath =
+=======
+>>>>>>> 95dbd10 (test)
 }
 
 

@@ -4,6 +4,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.DefaultConfig
 import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.variant.AndroidComponents
 import com.android.build.gradle.*
 import java.io.File
 import java.util.Properties
@@ -238,19 +239,18 @@ open class RustAndroidPlugin : Plugin<Project> {
         }
 
         // Determine the NDK version, if present
-        val ndk =
-            extensions[T::class].let {
-                val ndkPath = it.ndkPath
-                require(ndkPath != null) { "ndkPath not set! "}
-                val ndkSourceProperties = Properties()
-                val ndkSourcePropertiesFile = File(ndkPath, "source.properties")
-                if (ndkSourcePropertiesFile.exists()) {
-                    ndkSourceProperties.load(ndkSourcePropertiesFile.inputStream())
-                }
-                val ndkVersion = ndkSourceProperties.getProperty("Pkg.Revision", "0.0")
-                println("NDK $it")
-                Ndk(path = File(ndkPath), version = ndkVersion)
+        val ndk = extensions[AndroidComponents::class].sdkComponents.ndkDirectory.let {
+            val ndkDir = it.get()
+
+            val ndkSourceProperties = Properties()
+            val ndkSourcePropertiesFile = ndkDir.file("source.properties").asFile
+            if (ndkSourcePropertiesFile.exists()) {
+                ndkSourceProperties.load(ndkSourcePropertiesFile.inputStream())
             }
+            val ndkVersion = ndkSourceProperties.getProperty("Pkg.Revision", "0.0")
+            println("NDK $it")
+            Ndk(path = ndkDir.asFile, version = ndkVersion)
+        }
 
         // Fish linker wrapper scripts from our Java resources.
         val generateLinkerWrapper =
