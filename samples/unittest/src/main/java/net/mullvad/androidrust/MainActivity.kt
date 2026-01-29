@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity(), JNACallback, JNICallback {
 
         companion object {
             val INSTANCE: RustLibrary =
-                com.sun.jna.Native.load<RustLibrary?>("rust", RustLibrary::class.java)
+                com.sun.jna.Native.load("rust", RustLibrary::class.java)
                     as RustLibrary
         }
     }
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity(), JNACallback, JNICallback {
             // But when running as a unit test, we need to fish the libraries from
             // Java resources and configure the classpath.  We use JNA for that.
             val LIBRARY = com.sun.jna.NativeLibrary.getInstance("rust")
-            System.load(LIBRARY.getFile().getPath())
+            System.load(LIBRARY.file.path)
         }
 
         /**

@@ -44,8 +44,6 @@ object TestVersions {
             ?.value
             ?.maxOrNull()!!
 
-    val latestKotlinVersion = VersionNumber.parse("2.3.0")
-
     private fun getLatestVersionForAndroid(version: String): VersionNumber {
         val number = VersionNumber.parse(version)
         return allCandidateTestVersions()

@@ -17,7 +17,6 @@ class NdkVersionTest :
     FunSpec({
         val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK()
         val gradleVersion = TestVersions.latestSupportedGradleVersionFor(androidVersion)
-        val kotlinVersion = TestVersions.latestKotlinVersion
         val target = "x86_64"
         val location = "android/x86_64/librust.so"
 
@@ -28,7 +27,6 @@ class NdkVersionTest :
             SimpleAndroidApp(
                     projectDir = projectDir,
                     androidVersion = androidVersion,
-                    kotlinVersion = kotlinVersion,
                     ndkVersionOverride = VersionNumber.parse(ndkVersion),
                 )
                 .writeProject()
