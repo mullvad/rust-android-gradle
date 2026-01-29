@@ -1,5 +1,9 @@
 package net.mullvad.androidrust
 
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.variant.AndroidComponents
 import com.android.build.gradle.*
 import java.io.File
 import java.util.Properties
@@ -169,7 +173,7 @@ open class RustAndroidPlugin : Plugin<Project> {
             afterEvaluate {
                 plugins.all {
                     when (it) {
-                        is AppPlugin -> configurePlugin<AppExtension>(cargoExtension)
+                        is AppPlugin -> configurePlugin<ApplicationExtension>(cargoExtension)
                         is LibraryPlugin -> configurePlugin<LibraryExtension>(cargoExtension)
                     }
                 }
@@ -177,7 +181,7 @@ open class RustAndroidPlugin : Plugin<Project> {
         }
     }
 
-    private inline fun <reified T : BaseExtension> Project.configurePlugin(
+    private inline fun <reified T : CommonExtension> Project.configurePlugin(
         cargoExtension: CargoExtension
     ) {
         cargoExtension.localProperties = Properties()
@@ -208,14 +212,19 @@ open class RustAndroidPlugin : Plugin<Project> {
         }
 
         // Ensure that an API level is specified for all targets
-        val apiLevel = cargoExtension.apiLevel
+        val pluginApiLevel = cargoExtension.apiLevel
         if (cargoExtension.apiLevels.isNotEmpty()) {
-            if (apiLevel != null) {
+            if (pluginApiLevel != null) {
                 throw GradleException("Cannot set both `apiLevel` and `apiLevels`")
             }
         } else {
-            val default = apiLevel ?: extensions[T::class].defaultConfig.minSdkVersion!!.apiLevel
-            cargoExtension.apiLevels = cargoExtension.targets!!.associateWith { default }
+            extensions[T::class].defaultConfig.minSdk {
+                val default =
+                    pluginApiLevel
+                        ?: version?.apiLevel
+                        ?: throw GradleException("Couldn't determine apiLevel")
+                cargoExtension.apiLevels = cargoExtension.targets!!.associateWith { default }
+            }
         }
         val missingApiLevelTargets =
             cargoExtension.targets!!.toSet().minus(cargoExtension.apiLevels.keys)
@@ -225,20 +234,22 @@ open class RustAndroidPlugin : Plugin<Project> {
 
         extensions[T::class].apply {
             val buildDir by layout.buildDirectory
-            sourceSets.getByName("main").jniLibs.srcDir(File("$buildDir/rustJniLibs/android"))
-            sourceSets.getByName("test").resources.srcDir(File("$buildDir/rustJniLibs/desktop"))
+            sourceSets.getByName("main").jniLibs.directories.add("$buildDir/rustJniLibs/android")
+            sourceSets.getByName("test").resources.directories.add("$buildDir/rustJniLibs/desktop")
         }
 
         // Determine the NDK version, if present
         val ndk =
-            extensions[T::class].ndkDirectory.let {
+            extensions[AndroidComponents::class].sdkComponents.ndkDirectory.let {
+                val ndkDir = it.get()
+
                 val ndkSourceProperties = Properties()
-                val ndkSourcePropertiesFile = File(it, "source.properties")
+                val ndkSourcePropertiesFile = ndkDir.file("source.properties").asFile
                 if (ndkSourcePropertiesFile.exists()) {
                     ndkSourceProperties.load(ndkSourcePropertiesFile.inputStream())
                 }
                 val ndkVersion = ndkSourceProperties.getProperty("Pkg.Revision", "0.0")
-                Ndk(path = it, version = ndkVersion)
+                Ndk(path = ndkDir.asFile, version = ndkVersion)
             }
 
         // Fish linker wrapper scripts from our Java resources.
