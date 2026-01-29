@@ -6,7 +6,6 @@ class SimpleAndroidApp(
     private val projectDir: File,
     private val androidVersion: VersionNumber = Versions.latestAndroidVersion(),
     private val ndkVersionOverride: VersionNumber? = null,
-    private val kotlinVersion: VersionNumber,
     private val kaptWorkersEnabled: Boolean = true,
 ) {
     private val ndkVersion =
