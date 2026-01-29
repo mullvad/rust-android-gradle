@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library") version("8.7.3")
+    alias(libs.plugins.android.application)
     id("net.mullvad.rust-android")
 }
 
@@ -7,24 +7,19 @@ version = "1.0"
 
 android {
     namespace = "net.mullvad.library"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.3.13750724"
 
     defaultConfig {
         minSdk = 21
-        testOptions.targetSdk = 35
 
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
-
-        aarMetadata {
-            minCompileSdk = 21
-        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
@@ -48,14 +43,11 @@ java {
 }
 
 dependencies {
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2") {
-        exclude("com.android.support:support-annotations")
-    }
-    implementation("com.android.support:appcompat-v7:28.0.0")
-    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation(libs.espresso.core)
+    testImplementation(libs.junit)
 }
 
-val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
+val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()!!
 tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach {
     inputs.dir(rustJniLibsDir)
     dependsOn("cargoBuild")

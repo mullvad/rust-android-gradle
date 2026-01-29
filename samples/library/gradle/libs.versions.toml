@@ -1,0 +1,13 @@
+[versions]
+agp = "9.0.0"
+espressoCoreVersion = "3.0.2"
+junit = "4.13.2"
+
+[libraries]
+espresso-core = { module = "com.android.support.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+
+
