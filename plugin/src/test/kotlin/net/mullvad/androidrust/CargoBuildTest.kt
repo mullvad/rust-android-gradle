@@ -18,18 +18,12 @@ data class BuildTestData(val android: VersionNumber, val gradle: GradleVersion) 
 @EnabledIf(MultiVersionCondition::class)
 class CargoBuildTest :
     FunSpec({
-        val kotlinVersion = TestVersions.latestKotlinVersion
-
         val test: suspend FunSpecContainerScope.(BuildTestData) -> Unit =
             { (androidVersion, gradleVersion): BuildTestData ->
                 // arrange
                 val projectDir = tempDirectory()
 
-                SimpleAndroidApp(
-                        projectDir = projectDir,
-                        androidVersion = androidVersion,
-                        kotlinVersion = kotlinVersion,
-                    )
+                SimpleAndroidApp(projectDir = projectDir, androidVersion = androidVersion)
                     .writeProject()
 
                 SimpleCargoProject(projectDir = projectDir, targets = listOf("x86_64"))
