@@ -85,6 +85,10 @@ jobs:
         run: |
           ./gradlew -p samples/library :assembleDebug --info --warning-mode all
 
+      - name: Run samples/unittest
+        run: |
+          ./gradlew -p samples/unittest :test --info --warning-mode all
+
       # Work around https://github.com/actions/cache/issues/454.
       - name: Gradle stop
         run: |
@@ -181,3 +185,4 @@ jobs:
       - name: Gradle stop
         run: |
           ./gradlew --stop
+
