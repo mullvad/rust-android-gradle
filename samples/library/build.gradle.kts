@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library") version("8.7.3")
+    id("com.android.library") version("9.0.0")
     id("net.mullvad.rust-android")
 }
 
@@ -7,7 +7,7 @@ version = "1.0"
 
 android {
     namespace = "net.mullvad.library"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.3.13750724"
 
     defaultConfig {
@@ -24,7 +24,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

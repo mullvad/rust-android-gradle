@@ -1,17 +1,17 @@
 plugins {
-    id("com.android.application") version("8.7.3")
+    id("com.android.application") version ("9.0.0")
     id("net.mullvad.rust-android")
 }
 
 android {
     namespace = "net.mullvad.androidrust"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.3.13750724"
 
     defaultConfig {
         applicationId = "net.mullvad.androidrust"
-        minSdk = 21
-        targetSdk = 35
+        minSdk = 23
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         vectorDrawables.useSupportLibrary = true
@@ -19,27 +19,29 @@ android {
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    sourceSets {
-        getByName("test") {
-            resources {
-                srcDir(layout.buildDirectory.dir("rustJniLibs/desktop"))
-            }
-        }
-        getByName("main")
+    sourceSets { getByName("main") }
+    testOptions.unitTests.isIncludeAndroidResources = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources
+            .getByName("test")
+            .addStaticSourceDirectory(
+                layout.buildDirectory.get().dir("rustJniLibs/desktop").asFile.path
+            )
     }
 }
 
 cargo {
     module = "../rust"
+    // For MacBook we need to change the target
+    // targets = listOf("darwin-aarch64", "darwin-x86-64")
     targets = listOf("x86_64", "linux-x86-64")
     libname = "rust"
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 
 // There's an interaction between Gradle's resolution of dependencies with different types
 // (@jar, @aar) for `implementation` and `testImplementation` and with Android Studio's built-in
@@ -57,14 +59,21 @@ java {
 val jnaForTest by configurations.creating
 
 dependencies {
-    jnaForTest("net.java.dev.jna:jna:5.6.0@jar")
-    implementation("net.java.dev.jna:jna:5.6.0@aar")
+    jnaForTest("net.java.dev.jna:jna:5.18.1@jar")
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
 
     androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2") {
         exclude("com.android.support:support-annotations")
     }
-    implementation("com.android.support:appcompat-v7:28.0.0")
-    implementation("com.android.support.constraint:constraint-layout:2.0.4")
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
     testImplementation("junit:junit:4.13.2")
 
     // For reasons unknown, resolving the jnaForTest configuration directly
@@ -75,23 +84,26 @@ dependencies {
     // causing it to be resolved.  Cloning first dissociates the configuration,
     // avoiding other configurations from being resolved.  Tricky!
     testImplementation(files(jnaForTest.copyRecursive().files))
-    //testImplementation("androidx.test.ext:junit:$versions.androidx_junit")
-    testImplementation("org.robolectric:robolectric:4.14")
+    // testImplementation("androidx.test.ext:junit:$versions.androidx_junit")
+    testImplementation("org.robolectric:robolectric:4.16.1")
 }
 
-afterEvaluate {
-    fun CharSequence.capitalized() =
-        toString().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+val rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
 
-    android.applicationVariants.forEach { variant ->
-        val productFlavor = variant.productFlavors.joinToString("") { it.name.capitalized() }
-        val buildType = variant.buildType.name.capitalized()
-        tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
-
-        // Don't merge the jni lib folders until after the Rust libraries have been built.
-        tasks["merge${productFlavor}${buildType}JniLibFolders"].dependsOn(tasks["cargoBuild"])
-
-        // For unit tests.
-        tasks["process${productFlavor}${buildType}UnitTestJavaRes"].dependsOn(tasks["cargoBuild"])
+// Don't merge the jni lib folders until after the Rust libraries have been built.
+tasks
+    .matching { it.name.matches(Regex("merge.*JniLibFolders")) }
+    .configureEach {
+        inputs.dir(rustJniLibsDir)
+        dependsOn("cargoBuild")
     }
-}
+
+// For unit tests.
+val rustJniLibsDesktopDir = layout.buildDirectory.dir("rustJniLibs/desktop").get()
+
+tasks
+    .matching { it.name.matches(Regex("process.*UnitTestJavaRes")) }
+    .configureEach {
+        inputs.dir(rustJniLibsDesktopDir)
+        dependsOn("cargoBuild")
+    }
