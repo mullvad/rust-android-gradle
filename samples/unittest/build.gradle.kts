@@ -19,9 +19,7 @@ android {
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    sourceSets {
-        getByName("main")
-    }
+    sourceSets { getByName("main") }
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 
@@ -29,17 +27,16 @@ androidComponents {
     onVariants { variant ->
         variant.sources
             .getByName("test")
-            .addStaticSourceDirectory(layout.buildDirectory.get().dir("rustJniLibs/desktop").asFile.path)
+            .addStaticSourceDirectory(
+                layout.buildDirectory.get().dir("rustJniLibs/desktop").asFile.path
+            )
     }
 }
 
 cargo {
     module = "../rust"
-    /*
-    For MacBook we need to change the target
-    targets = listOf("darwin-aarch64")
-     */
-    targets = listOf("x86_64", "linux-x86-64")
+    // For MacBook we need to change the target
+    targets = listOf("darwin-aarch64", "aarch64-apple-darwin", "x86_64", "linux-x86-64")
     libname = "rust"
 }
 
