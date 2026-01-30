@@ -17,17 +17,12 @@ class CargoTargetTest :
     FunSpec({
         val androidVersion = TestVersions.latestAndroidVersionForCurrentJDK()
         val gradleVersion = TestVersions.latestSupportedGradleVersionFor(androidVersion)
-        val kotlinVersion = TestVersions.latestKotlinVersion
 
         val test: suspend FunSpecContainerScope.(TargetTestData) -> Unit = { (target, location) ->
             // arrange
             val projectDir = tempDirectory()
 
-            SimpleAndroidApp(
-                    projectDir = projectDir,
-                    androidVersion = androidVersion,
-                    kotlinVersion = kotlinVersion,
-                )
+            SimpleAndroidApp(projectDir = projectDir, androidVersion = androidVersion)
                 .writeProject()
 
             SimpleCargoProject(projectDir = projectDir, targets = listOf(target)).writeProject()
