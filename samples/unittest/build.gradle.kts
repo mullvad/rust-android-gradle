@@ -36,7 +36,8 @@ androidComponents {
 cargo {
     module = "../rust"
     // For MacBook we need to change the target
-    targets = listOf("darwin-aarch64", "darwin-x86-64", "x86_64", "linux-x86-64")
+    // targets = listOf("darwin-aarch64", "darwin-x86-64")
+    targets = listOf("x86_64", "linux-x86-64")
     libname = "rust"
 }
 
