@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -eu
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
+
+SIGNING_KEY_PATH=$(readlink -f /dev/android-signing-key)
+
+podman run --rm -it \
+  --device $SIGNING_KEY_PATH:$SIGNING_KEY_PATH \
+  -v $REPO_DIR:/build:Z \
+  -v ~/.gradle/gradle.properties:/root/.gradle/gradle.properties:ro,Z \
+  ghcr.io/mullvad/mullvadvpn-app-build-android:6f6ff93a54 bash -c "
+
+apt update
+apt install -y scdaemon pcscd
+service pcscd start
+gpg --import /build/release/android-signing-key.pub
+echo -e 'trust\n5\ny\nsave' | gpg --command-fd 0 --edit-key 234B5F5BB6811BE0
+echo ''
+echo ''
+echo '#########################################'
+echo '### Welcome to the release container! ###'
+echo '#########################################'
+echo ''
+echo 'If you need to enter pin to the smart card make sure you export tty:'
+echo '> export GPG_TTY=\$(tty)'
+echo ''
+echo ' Before you publish, make sure you are on the right branch and commit!'
+echo ''
+echo 'First perform a dry-run to make sure everything is okay:'
+echo '> ./gradlew publishPlugins --validate-only'
+echo ''
+echo 'Then publish the plugin by running:'
+echo '> ./gradlew publishPlugins'
+echo ''
+bash
+"
