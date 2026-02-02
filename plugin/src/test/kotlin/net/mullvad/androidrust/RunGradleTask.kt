@@ -25,15 +25,6 @@ class RunGradleTask(
     val taskName: String,
     val arguments: List<String> = listOf("--info", "--stacktrace"),
 ) {
-    private val gradleVersionString = run {
-        val str = gradleVersion.version
-        if (str.count { it == '.' } == 2 && str.endsWith(".0")) {
-            str.substring(0, str.length - 2)
-        } else {
-            str
-        }
-    }
-
     private val environment = run {
         if (System.getenv("ANDROID_HOME").isNullOrBlank()) {
             val sdk = systemDefaultAndroidSdkHome.absolutePath.replace('\\', '/')
@@ -46,7 +37,7 @@ class RunGradleTask(
     fun build(): BuildResult =
         GradleRunner.create()
             .withEnvironment(environment)
-            .withGradleVersion(gradleVersionString)
+            .withGradleVersion(gradleVersion.version)
             .forwardOutput()
             .withProjectDir(projectDir)
             .withArguments(listOf(taskName) + arguments)

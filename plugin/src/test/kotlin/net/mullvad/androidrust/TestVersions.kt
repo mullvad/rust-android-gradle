@@ -15,9 +15,7 @@ object TestVersions {
 
     fun latestAndroidVersionForCurrentJDK(): VersionNumber {
         val current = System.getProperty("java.version")
-        println("Current JDK: $current")
         val version7 = VersionNumber.parse("7.0.0")
-        println("Version 7: $version7")
         return if (current.startsWith("1.")) {
             allCandidateTestVersions().keys.filter { it < version7 }.maxOrNull()!!
         } else {
@@ -43,8 +41,6 @@ object TestVersions {
             .find { it.key.major == androidVersion.major && it.key.minor == androidVersion.minor }
             ?.value
             ?.maxOrNull()!!
-
-    val latestKotlinVersion = VersionNumber.parse("2.3.0")
 
     private fun getLatestVersionForAndroid(version: String): VersionNumber {
         val number = VersionNumber.parse(version)
