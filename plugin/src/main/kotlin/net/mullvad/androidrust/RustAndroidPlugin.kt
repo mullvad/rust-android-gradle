@@ -218,13 +218,11 @@ open class RustAndroidPlugin : Plugin<Project> {
                 throw GradleException("Cannot set both `apiLevel` and `apiLevels`")
             }
         } else {
-            extensions[T::class].defaultConfig.minSdk {
-                val default =
-                    pluginApiLevel
-                        ?: version?.apiLevel
-                        ?: throw GradleException("Couldn't determine apiLevel")
-                cargoExtension.apiLevels = cargoExtension.targets!!.associateWith { default }
-            }
+            val default =
+                pluginApiLevel
+                    ?: extensions[T::class].defaultConfig.minSdk
+                    ?: throw GradleException("Couldn't determine apiLevel")
+            cargoExtension.apiLevels = cargoExtension.targets!!.associateWith { default }
         }
         val missingApiLevelTargets =
             cargoExtension.targets!!.toSet().minus(cargoExtension.apiLevels.keys)
