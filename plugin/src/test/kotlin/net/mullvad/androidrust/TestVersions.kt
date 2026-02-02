@@ -15,9 +15,7 @@ object TestVersions {
 
     fun latestAndroidVersionForCurrentJDK(): VersionNumber {
         val current = System.getProperty("java.version")
-        println("Current JDK: $current")
         val version7 = VersionNumber.parse("7.0.0")
-        println("Version 7: $version7")
         return if (current.startsWith("1.")) {
             allCandidateTestVersions().keys.filter { it < version7 }.maxOrNull()!!
         } else {
