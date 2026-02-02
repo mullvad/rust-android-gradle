@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# Script expects YUBIKEY_DEVICE to be set, it should point towards the yubikey to
+# sign the artifact, e.g:
+# /dev/bus/usb/000/001
+# or if you only have one Yubikey use the following command:
+# YUBIKEY_DEVICE=`lsusb | grep Yubikey | awk -F'[ :]' '{print "/dev/bus/usb/"$2"/"$4}'`
+#
+if [ "$#" -ne 1 ]; then
+  echo "usage: publish path/to/publishing-public-key.pub"
+  echo ""
+  echo "Ensure you have enviromental variable YUBIKEY_DEVICE enviroment set, e.g:"
+  echo "$ export YUBIKEY_DEVICE=/dev/bus/usb/000/001"
+  exit -1
+fi
+
+if ! [[ -f "$1" ]]; then
+  echo "Error: '$1' is not a valid pub key"
+  exit -1
+fi
+
+if [[ -z "${YUBIKEY_DEVICE}" ]]; then
+  echo "Error: enviroment vairable YUBIKEY_DEVICE is not set"
+  exit -1
+elif ! [[ -c "${YUBIKEY_DEVICE}" ]]; then
+  echo "Error: '$YUBIKEY_DEVICE' is not a special character file"
+  exit -1
+fi
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
+
+podman run --rm -it \
+  --device $YUBIKEY_DEVICE:$YUBIKEY_DEVICE \
+  -v $1:/root/mypubkey.pub:ro,Z \
+  -v $REPO_DIR:/build:Z \
+  -v ~/.gradle/gradle.properties:/root/.gradle/gradle.properties:ro,Z \
+  ghcr.io/mullvad/mullvadvpn-app-build-android:6f6ff93a54 bash -c "
+
+apt update
+apt install -y scdaemon pcscd
+service pcscd start
+gpg --import /root/mypubkey.pub
+echo -e 'trust\n5\ny\nsave' | gpg --command-fd 0 --edit-key 234B5F5BB6811BE0
+gpg --card-status
+bash
+# run the following manually
+# export GPG_TTY=$(tty)
+# ./gradlew publishPlugins --validate-only
+"
+
