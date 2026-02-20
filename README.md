@@ -350,7 +350,7 @@ cargo {
 
 ### environmentalOverrides
 
-You can set environment variables for the Cargo invocation by setting values in the 
+You can set environment variables for the Cargo invocation by setting values in the
 `environmentalOverrides` map (or setting the property to a new map object).
 
 
@@ -510,34 +510,6 @@ includeBuild('../rust-android-gradle') {
         substitute module('gradle.plugin.org.mozilla.rust-android-gradle:plugin') with project(':plugin')
     }
 }
-```
-
-# Publishing
-
-You will need credentials to publish to the [Gradle plugin portal](https://plugins.gradle.org/) in
-the appropriate place for the [`plugin-publish`](https://plugins.gradle.org/docs/publish-plugin) to
-find them.  Usually, that's in `~/.gradle/gradle.properties`.
-
-At top-level, the `publishPlugins` Gradle task publishes the plugin for consumption:
-
-```
-$ ./gradlew publishPlugins
-...
-Publishing plugin org.mozilla.rust-android-gradle.rust-android version 0.8.1
-Publishing artifact build/libs/plugin-0.8.1.jar
-Publishing artifact build/libs/plugin-0.8.1-sources.jar
-Publishing artifact build/libs/plugin-0.8.1-javadoc.jar
-Publishing artifact build/publish-generated-resources/pom.xml
-Activating plugin org.mozilla.rust-android-gradle.rust-android version 0.8.1
-```
-
-Furthermore, all published artifacts to the Gradle plugin portal must be signed. This is done
-through the [`signing`](https://docs.gradle.org/current/userguide/signing_plugin.html#signing_plugin) plugin,
-and the following values must be set in e.g. `/.gradle/gradle.properties`:
-
-```
-mullvad.rust-android-gradle.codeSigningEnabled=true
-signing.gnupg.keyName=[signing key fingerprint]
 ```
 
 ## Real projects
