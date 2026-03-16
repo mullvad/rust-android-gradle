@@ -1,6 +1,7 @@
 import groovy.json.JsonBuilder
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.plugin.compatibility.compatibility
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -22,6 +23,7 @@ gradlePlugin {
                 "A plugin that helps build Rust JNI libraries with Cargo for use in Android projects."
             tags = listOf("rust", "cargo", "android")
             implementationClass = "net.mullvad.androidrust.RustAndroidPlugin"
+            compatibility { features { configurationCache = true } }
         }
     }
 }
