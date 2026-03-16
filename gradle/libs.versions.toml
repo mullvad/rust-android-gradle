@@ -9,7 +9,7 @@ kotest = "6.0.7"
 kotlin = "2.3.0"
 kotlinx-serialization-json = "1.9.0"
 ktfmt = "0.25.0"
-version-catalog-update = "1.0.1"
+version-catalog-update = "1.1.0"
 
 [libraries]
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradle-plugin" }
