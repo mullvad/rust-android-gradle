@@ -1,6 +1,7 @@
 import groovy.json.JsonBuilder
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.plugin.compatibility.compatibility
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -22,6 +23,7 @@ gradlePlugin {
                 "A plugin that helps build Rust JNI libraries with Cargo for use in Android projects."
             tags = listOf("rust", "cargo", "android")
             implementationClass = "net.mullvad.androidrust.RustAndroidPlugin"
+            compatibility { features { configurationCache = true } }
         }
     }
 }
@@ -55,8 +57,7 @@ version = versionProperties["version"]!!
 val isCI = (System.getenv("CI") ?: "false").toBoolean()
 
 // Maps supported Android plugin versions to the versions of Gradle that support it
-val supportedVersions =
-    mapOf("9.1.0-alpha06" to listOf("9.2.1"), "9.0.0" to listOf("9.3.0", "9.1.0"))
+val supportedVersions = mapOf("9.1.0" to listOf("9.3.1"), "9.0.0" to listOf("9.3.0", "9.1.0"))
 
 val localRepo = file("${layout.buildDirectory.get()}/local-repo")
 
