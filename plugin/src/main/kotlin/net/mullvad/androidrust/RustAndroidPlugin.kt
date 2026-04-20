@@ -4,7 +4,8 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.variant.AndroidComponents
-import com.android.build.gradle.*
+import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.LibraryPlugin
 import java.io.File
 import java.util.Properties
 import org.gradle.api.DefaultTask
@@ -170,6 +171,15 @@ open class RustAndroidPlugin : Plugin<Project> {
         with(project) {
             val cargoExtension = extensions.create("cargo", CargoExtension::class.java)
 
+            // Register jniLibs source directories eagerly (before AGP finalizes source sets)
+            // so that directories.add() works correctly.
+            plugins.all {
+                when (it) {
+                    is AppPlugin -> registerJniSourceDirs<ApplicationExtension>()
+                    is LibraryPlugin -> registerJniSourceDirs<LibraryExtension>()
+                }
+            }
+
             afterEvaluate {
                 plugins.all {
                     when (it) {
@@ -178,6 +188,14 @@ open class RustAndroidPlugin : Plugin<Project> {
                     }
                 }
             }
+        }
+    }
+
+    private inline fun <reified T : CommonExtension> Project.registerJniSourceDirs() {
+        val buildDir = layout.buildDirectory.get().asFile
+        extensions[T::class].apply {
+            sourceSets.getByName("main").jniLibs.directories.add("$buildDir/rustJniLibs/android")
+            sourceSets.getByName("test").resources.directories.add("$buildDir/rustJniLibs/desktop")
         }
     }
 
@@ -228,12 +246,6 @@ open class RustAndroidPlugin : Plugin<Project> {
             cargoExtension.targets!!.toSet().minus(cargoExtension.apiLevels.keys)
         if (missingApiLevelTargets.isNotEmpty()) {
             throw GradleException("`apiLevels` missing entries for: $missingApiLevelTargets")
-        }
-
-        extensions[T::class].apply {
-            val buildDir by layout.buildDirectory
-            sourceSets.getByName("main").jniLibs.directories.add("$buildDir/rustJniLibs/android")
-            sourceSets.getByName("test").resources.directories.add("$buildDir/rustJniLibs/desktop")
         }
 
         // Determine the NDK version, if present
