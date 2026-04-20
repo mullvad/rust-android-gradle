@@ -30,7 +30,7 @@ In your project's `build.gradle.kts`, declare the `rust-android-gradle` plugin i
 
 ```kotlin
 plugins {
-    id("net.mullvad.rust-android") version("0.10.0")
+    id("net.mullvad.rust-android") version("0.10.1")
 }
 
 cargo {
@@ -525,7 +525,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'net.mullvad.rust-android:plugin:0.10.0'
+        classpath 'net.mullvad.rust-android:plugin:0.10.1'
     }
 }
 ```
