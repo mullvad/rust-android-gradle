@@ -1,6 +1,7 @@
 # Unreleased
 
 - Marked plugin as CC-compatible
+- Fixed a bug sourcesets sometimes would not be picked up
 
 # 0.10.0
 
