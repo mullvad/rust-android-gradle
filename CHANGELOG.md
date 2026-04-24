@@ -1,3 +1,8 @@
+# Unreleased
+
+- Remove the dependency on Python
+- Require at least Rust 1.68
+
 # 0.10.1
 
 - Marked plugin as CC-compatible
