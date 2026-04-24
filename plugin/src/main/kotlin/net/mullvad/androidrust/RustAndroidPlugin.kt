@@ -13,6 +13,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Sync
 
 const val RUST_TASK_GROUP = "rust"
@@ -278,13 +279,39 @@ open class RustAndroidPlugin : Plugin<Project> {
                         .path
                 )
             )
-            include("**/linker-wrapper*")
+            include("**/linker-wrapper.rs")
             into(File(rootBuildDir, "linker-wrapper"))
             eachFile { it.path = it.path.replaceFirst("net/mullvad/androidrust", "") }
             filePermissions { it.unix("755") }
             includeEmptyDirs = false
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
+
+        val compileLinkerWrapper =
+            tasks.maybeCreate("compileLinkerWrapper", Exec::class.java).apply {
+                group = RUST_TASK_GROUP
+                description = "Compile shared linker wrapper binary"
+                dependsOn(generateLinkerWrapper)
+
+                val linkerWrapperRs = File(rootBuildDir, "linker-wrapper/linker-wrapper.rs")
+                val linkerWrapperBin =
+                    if (System.getProperty("os.name").startsWith("Windows")) {
+                        File(rootBuildDir, "linker-wrapper/linker-wrapper.exe")
+                    } else {
+                        File(rootBuildDir, "linker-wrapper/linker-wrapper")
+                    }
+
+                inputs.file(linkerWrapperRs)
+                outputs.file(linkerWrapperBin)
+
+                workingDir(File(rootBuildDir, "linker-wrapper"))
+                commandLine(
+                    cargoExtension.rustcCommand,
+                    linkerWrapperRs.path,
+                    "-o",
+                    linkerWrapperBin.path,
+                )
+            }
 
         val buildTask =
             tasks.maybeCreate("cargoBuild", DefaultTask::class.java).apply {
@@ -354,7 +381,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                         toolchainDirectory.set(cargoExtension.toolchainDirectory)
                         generateBuildId.set(cargoExtension.generateBuildId)
                         extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
-                        pythonCommand.set(cargoExtension.pythonCommand)
                         autoConfigureClangSys.set(cargoExtension.autoConfigureClangSys)
 
                         this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
@@ -365,7 +391,7 @@ open class RustAndroidPlugin : Plugin<Project> {
 
             buildTask.dependsOn(targetBuildTask)
 
-            targetBuildTask.dependsOn(generateLinkerWrapper)
+            targetBuildTask.dependsOn(compileLinkerWrapper)
         }
     }
 }

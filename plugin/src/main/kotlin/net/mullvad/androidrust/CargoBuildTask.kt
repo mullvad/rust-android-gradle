@@ -43,8 +43,6 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input @Optional val verbose = property<Boolean>()
 
-    @Input val pythonCommand = property<String>()
-
     @Input val featureSpec = property<FeatureSpec>()
 
     @Input val toolchainDirectory = property<File>()
@@ -209,9 +207,9 @@ abstract class CargoBuildTask : DefaultTask() {
 
                         val linkerWrapper =
                             if (System.getProperty("os.name").startsWith("Windows")) {
-                                File(buildDir, "linker-wrapper/linker-wrapper.bat")
+                                File(buildDir, "linker-wrapper/linker-wrapper.exe")
                             } else {
-                                File(buildDir, "linker-wrapper/linker-wrapper.sh")
+                                File(buildDir, "linker-wrapper/linker-wrapper")
                             }
                         environment("CARGO_TARGET_${toolchainTarget}_LINKER", linkerWrapper.path)
 
@@ -238,11 +236,6 @@ abstract class CargoBuildTask : DefaultTask() {
                         }
 
                         // Configure our linker wrapper.
-                        environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
-                        environment(
-                            "RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
-                            File(buildDir, "linker-wrapper/linker-wrapper.py").path,
-                        )
                         environment("RUST_ANDROID_GRADLE_CC", cc)
                         environment(
                             "RUST_ANDROID_GRADLE_CC_LINK_ARG",
