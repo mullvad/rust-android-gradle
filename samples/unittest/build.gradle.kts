@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version ("9.1.0")
+    alias(libs.plugins.android.application)
     id("net.mullvad.rust-android")
 }
 
