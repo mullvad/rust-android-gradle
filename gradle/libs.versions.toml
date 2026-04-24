@@ -1,28 +1,28 @@
 [versions]
 # Core Tooling Versions
-android-gradle-plugin = "9.1.0"
-gradle-plugin-publish = "2.1.0"
+android-gradle-plugin = "9.2.0"
+gradle-plugin-publish = "2.1.1"
 gradle-test-retry = "1.6.4"
-gradle-versions = "0.53.0"
-kotlin = "2.3.20"
+gradle-versions = "0.54.0"
+kotlin = "2.3.21"
 ktfmt = "0.25.0"
 version-catalog-update = "1.1.0"
 
 # Library Versions
-guava = "33.5.0-jre"
+guava = "33.6.0-jre"
 junit-jupiter-api = "6.0.3"
-kotest = "6.1.7"
-kotlinx-serialization-json = "1.10.0"
+kotest = "6.1.11"
+kotlinx-serialization-json = "1.11.0"
 
 # Sample-specific Versions
-core-ktx = "1.17.0"
+core-ktx = "1.18.0"
 espresso-core-version = "3.0.2"
 junit = "4.13.2"
 junit-version = "1.3.0"
 espresso-core = "3.7.0"
 lifecycle-runtime-ktx = "2.10.0"
-activity-compose = "1.12.3"
-compose-bom = "2026.01.01"
+activity-compose = "1.13.0"
+compose-bom = "2026.04.01"
 robolectric = "4.16.1"
 
 [libraries]
