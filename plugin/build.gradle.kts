@@ -66,10 +66,10 @@ publishing { repositories { maven(localRepo) } }
 dependencies {
     implementation(gradleApi())
     implementation(libs.kotlinx.serialization.json)
-    compileOnly(libs.android.gradlePlugin)
+    compileOnly(libs.android.gradle.plugin)
 
     testImplementation(gradleTestKit())
-    testImplementation(libs.android.gradlePlugin)
+    testImplementation(libs.android.gradle.plugin)
     testImplementation(libs.guava)
 
     testImplementation(libs.junit.jupiter.api)
