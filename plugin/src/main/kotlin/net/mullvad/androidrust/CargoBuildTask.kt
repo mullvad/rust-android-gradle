@@ -19,8 +19,6 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val ndk = property<Ndk>()
 
-    @Input val rootBuildDirectory = property<File>()
-
     @Input val projectProjectDir = property<File>()
 
     @Input val target = property<String>()
@@ -42,8 +40,6 @@ abstract class CargoBuildTask : DefaultTask() {
     @Input @Optional val rustupChannel = property<String>()
 
     @Input @Optional val verbose = property<Boolean>()
-
-    @Input val pythonCommand = property<String>()
 
     @Input val featureSpec = property<FeatureSpec>()
 
@@ -197,7 +193,6 @@ abstract class CargoBuildTask : DefaultTask() {
                     if (toolchain.type != ToolchainType.DESKTOP) {
                         val ndkPath = ndk.path
                         val ndkVersionMajor = ndk.versionMajor
-                        val buildDir = rootBuildDirectory.get()
 
                         val toolchainDirectory =
                             if (toolchain.type == ToolchainType.ANDROID_PREBUILT) {
@@ -207,14 +202,6 @@ abstract class CargoBuildTask : DefaultTask() {
                                 toolchainDirectory.get()
                             }
 
-                        val linkerWrapper =
-                            if (System.getProperty("os.name").startsWith("Windows")) {
-                                File(buildDir, "linker-wrapper/linker-wrapper.bat")
-                            } else {
-                                File(buildDir, "linker-wrapper/linker-wrapper.sh")
-                            }
-                        environment("CARGO_TARGET_${toolchainTarget}_LINKER", linkerWrapper.path)
-
                         val cc = File(toolchainDirectory, "${toolchain.cc(apiLevel.get())}").path
                         val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
                         val ar =
@@ -223,6 +210,8 @@ abstract class CargoBuildTask : DefaultTask() {
                                     "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
                                 )
                                 .path
+
+                        environment("CARGO_TARGET_${toolchainTarget}_LINKER", cc)
 
                         // For build.rs in `cc` consumers: like "CC_i686-linux-android".  See
                         // https://github.com/alexcrichton/cc-rs#external-configuration-via-environment-variables.
@@ -237,20 +226,23 @@ abstract class CargoBuildTask : DefaultTask() {
                             environment("CLANG_PATH", cc)
                         }
 
-                        // Configure our linker wrapper.
-                        environment("RUST_ANDROID_GRADLE_PYTHON_COMMAND", pythonCommand.get())
-                        environment(
-                            "RUST_ANDROID_GRADLE_LINKER_WRAPPER_PY",
-                            File(buildDir, "linker-wrapper/linker-wrapper.py").path,
-                        )
-                        environment("RUST_ANDROID_GRADLE_CC", cc)
-                        environment(
-                            "RUST_ANDROID_GRADLE_CC_LINK_ARG",
-                            buildString {
-                                append("-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so")
-                                if (generateBuildId.get()) append(",--build-id")
-                            },
-                        )
+                        // Add necessary linker flags via RUSTFLAGS.
+                        val extraRustFlags = buildString {
+                            append(
+                                "-C link-arg=-Wl,-z,max-page-size=16384,-soname,lib${libname.get()}.so"
+                            )
+                            if (generateBuildId.get()) {
+                                append(",--build-id")
+                            }
+                        }
+                        val currentRustFlags = environment["RUSTFLAGS"] as String?
+                        val newRustFlags =
+                            if (currentRustFlags != null) {
+                                "$currentRustFlags $extraRustFlags"
+                            } else {
+                                extraRustFlags
+                            }
+                        environment("RUSTFLAGS", newRustFlags)
                     }
 
                     extraCargoBuildArguments.orNull?.let { theCommandLine.addAll(it) }

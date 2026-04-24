@@ -38,12 +38,6 @@ open class CargoExtension {
     var apiLevels: Map<String, Int> = mapOf()
     var extraCargoBuildArguments: List<String>? = null
     var generateBuildId: Boolean = false
-    var pythonCommand: String = ""
-        get() {
-            return field.ifEmpty {
-                getProperty("rust.pythonCommand", "RUST_ANDROID_GRADLE_PYTHON_COMMAND") ?: "python"
-            }
-        }
 
     var environmentalOverrides = mutableMapOf<String, String>()
 
