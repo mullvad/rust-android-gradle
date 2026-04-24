@@ -12,8 +12,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.Sync
 
 const val RUST_TASK_GROUP = "rust"
 
@@ -262,30 +260,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                 Ndk(path = ndkDir.asFile, version = ndkVersion)
             }
 
-        // Fish linker wrapper scripts from our Java resources.
-        val generateLinkerWrapper =
-            rootProject.tasks.maybeCreate("generateLinkerWrapper", Sync::class.java).apply {
-                group = RUST_TASK_GROUP
-                description = "Generate shared linker wrapper script"
-            }
-
-        val rootBuildDir by rootBuildDirectory()
-        generateLinkerWrapper.apply {
-            // From https://stackoverflow.com/a/320595.
-            from(
-                rootProject.zipTree(
-                    File(RustAndroidPlugin::class.java.protectionDomain.codeSource.location.toURI())
-                        .path
-                )
-            )
-            include("**/linker-wrapper*")
-            into(File(rootBuildDir, "linker-wrapper"))
-            eachFile { it.path = it.path.replaceFirst("net/mullvad/androidrust", "") }
-            filePermissions { it.unix("755") }
-            includeEmptyDirs = false
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
-
         val buildTask =
             tasks.maybeCreate("cargoBuild", DefaultTask::class.java).apply {
                 group = RUST_TASK_GROUP
@@ -310,7 +284,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                         description = "Build library ($target)"
                         toolchain.set(theToolchain)
                         projectProjectDir.set(project.project.projectDir)
-                        rootBuildDirectory.set(rootBuildDirectory())
                         // CARGO_TARGET_DIR can be used to force the use of a global, shared
                         // target directory across all rust projects on a machine. Use it if
                         // it's set, otherwise use the configured `targetDirectory` value, and
@@ -354,7 +327,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                         toolchainDirectory.set(cargoExtension.toolchainDirectory)
                         generateBuildId.set(cargoExtension.generateBuildId)
                         extraCargoBuildArguments.set(cargoExtension.extraCargoBuildArguments)
-                        pythonCommand.set(cargoExtension.pythonCommand)
                         autoConfigureClangSys.set(cargoExtension.autoConfigureClangSys)
 
                         this.apiLevel.set(cargoExtension.apiLevels[theToolchain.platform]!!)
@@ -364,8 +336,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                     }
 
             buildTask.dependsOn(targetBuildTask)
-
-            targetBuildTask.dependsOn(generateLinkerWrapper)
         }
     }
 }
