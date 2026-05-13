@@ -9,11 +9,13 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 
+@CacheableTask
 abstract class CargoBuildTask : DefaultTask() {
     @Input val toolchain = property<Toolchain>()
 
