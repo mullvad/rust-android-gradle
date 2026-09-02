@@ -34,6 +34,7 @@ open class CargoExtension {
     var verbose: Boolean? = null
     var targetDirectory: String? = null
     var targetIncludes: Array<String>? = null
+    var targetRenames: Map<String, String>? = null
     var apiLevel: Int? = null
     var apiLevels: Map<String, Int> = mapOf()
     var extraCargoBuildArguments: List<String>? = null
