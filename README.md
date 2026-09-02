@@ -310,6 +310,16 @@ cargo {
 }
 ```
 
+### targetRenames
+
+Change the name of the binary that Cargo outputs.
+
+```kotlin
+cargo {
+    targetRenames = mapOf("name" to "libname.so")
+}
+```
+
 ### apiLevel
 
 The Android NDK API level to target.  NDK API levels are not the same as SDK API versions; they are
