@@ -320,6 +320,7 @@ open class RustAndroidPlugin : Plugin<Project> {
                         cargoCommand.set(cargoExtension.cargoCommand)
                         profile.set(cargoExtension.profile)
                         targetIncludes.set(cargoExtension.targetIncludes?.toList())
+                        targetRenames.set(cargoExtension.targetRenames)
                         libname.set(cargoExtension.libname)
                         rustupChannel.set(cargoExtension.rustupChannel)
                         verbose.set(cargoExtension.verbose)

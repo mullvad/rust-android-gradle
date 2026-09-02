@@ -38,6 +38,8 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input @Optional val targetIncludes = listProperty<String>()
 
+    @Input @Optional val targetRenames = mapProperty<String, String>()
+
     @Input val libname = property<String>()
 
     @Input val apiLevel = property<Int>()
@@ -107,6 +109,8 @@ abstract class CargoBuildTask : DefaultTask() {
                 spec.include("lib${libname}.dylib")
                 spec.include("${libname}.dll")
             }
+
+            targetRenames.orNull?.let { renames -> spec.rename { fileName -> renames[fileName] } }
         }
     }
 
