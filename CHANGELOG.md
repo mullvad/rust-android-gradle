@@ -1,7 +1,8 @@
-# Unreleased
+# 0.11.0
 
 - Remove the dependency on Python
 - Require at least Rust 1.68
+- Added support for [target renaming](https://github.com/mullvad/rust-android-gradle#targetrenames) to enable shipping of executables.
 
 # 0.10.1
 
