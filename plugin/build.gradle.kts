@@ -95,11 +95,10 @@ tasks {
             inputs.property("version", version)
             inputs.property("supportedVersions", supportedVersions)
             outputs.dir(generatedResources)
-            val outputFile =
-                generatedResources.map {
-                    it.asFile.mkdirs()
-                    it.file("versions.json").asFile
-                }
+            val outputFile = generatedResources.map {
+                it.asFile.mkdirs()
+                it.file("versions.json").asFile
+            }
             outputFile
                 .get()
                 .writeText(
@@ -115,11 +114,10 @@ tasks {
     register("generateTestTasksJson") {
         inputs.property("supportedVersions", supportedVersions)
         outputs.dir(generatedBuildResources)
-        val outputFile =
-            generatedBuildResources.map {
-                it.asFile.mkdirs()
-                it.file("androidTestTasks.json").asFile
-            }
+        val outputFile = generatedBuildResources.map {
+            it.asFile.mkdirs()
+            it.file("androidTestTasks.json").asFile
+        }
         outputFile
             .get()
             .writeText(
