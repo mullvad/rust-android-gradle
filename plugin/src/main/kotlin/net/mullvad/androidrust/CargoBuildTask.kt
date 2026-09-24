@@ -271,11 +271,10 @@ private fun getDefaultTargetTriple(
     rustc: String,
 ): String? {
     val stdout = ByteArrayOutputStream()
-    val result =
-        execOperations.exec { spec ->
-            spec.standardOutput = stdout
-            spec.commandLine = listOf(rustc, "--version", "--verbose")
-        }
+    val result = execOperations.exec { spec ->
+        spec.standardOutput = stdout
+        spec.commandLine = listOf(rustc, "--version", "--verbose")
+    }
     if (result.exitValue != 0) {
         task.logger.warn(
             "Failed to get default target triple from rustc (exit code: ${result.exitValue})"
