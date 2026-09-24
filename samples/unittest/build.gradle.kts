@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "net.mullvad.androidrust"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.3.13750724"
 
     defaultConfig {

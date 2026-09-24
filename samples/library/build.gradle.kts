@@ -7,7 +7,7 @@ version = "1.0"
 
 android {
     namespace = "net.mullvad.library"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.3.13750724"
 
     defaultConfig {
