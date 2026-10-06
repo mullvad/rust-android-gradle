@@ -23,7 +23,12 @@ gradlePlugin {
                 "A plugin that helps build Rust JNI libraries with Cargo for use in Android projects."
             tags = listOf("rust", "cargo", "android")
             implementationClass = "net.mullvad.androidrust.RustAndroidPlugin"
-            compatibility { features { configurationCache = true } }
+            compatibility {
+                features {
+                    configurationCache = true
+                    isolatedProjects = true
+                }
+            }
         }
     }
 }
@@ -59,6 +64,7 @@ val isCI = (System.getenv("CI") ?: "false").toBoolean()
 // Maps supported Android plugin versions to the versions of Gradle that support it
 val supportedVersions =
     mapOf(
+        "9.4.0" to listOf("9.6.0"),
         "9.2.0" to listOf("9.4.1"),
         "9.1.0" to listOf("9.3.1"),
         "9.0.0" to listOf("9.3.0", "9.1.0"),
