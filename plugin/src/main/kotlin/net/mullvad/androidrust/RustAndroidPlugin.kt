@@ -8,10 +8,12 @@ import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import java.io.File
 import java.util.Properties
+import kotlin.collections.mapKeys
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.ProviderFactory
 
 const val RUST_TASK_GROUP = "rust"
 
@@ -300,21 +302,10 @@ open class RustAndroidPlugin : Plugin<Project> {
                         )
 
                         val toolchainTarget = theToolchain.target.uppercase().replace('-', '_')
-                        val prefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
-                        // For ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_x_KEY=VALUE, set
-                        // KEY=VALUE.
-                        logger.info(
-                            "Passing through project properties with prefix '${prefix}' (environment variables with prefix 'ORG_GRADLE_PROJECT_${prefix}'"
+                        environmentOverrides.set(
+                            cargoExtension.environmentalOverrides +
+                                overrides(providers, toolchainTarget)
                         )
-                        val overrides =
-                            providers
-                                .environmentVariablesPrefixedBy(prefix)
-                                .get()
-                                .mapKeys { (key, _) -> // Remove the prefix
-                                    key.substring(prefix.length)
-                                }
-                                .mapValues { it.toString() }
-                        environmentOverrides.set(cargoExtension.environmentalOverrides + overrides)
 
                         rustcCommand.set(cargoExtension.rustcCommand)
                         cargoCommand.set(cargoExtension.cargoCommand)
@@ -338,5 +329,26 @@ open class RustAndroidPlugin : Plugin<Project> {
 
             buildTask.dependsOn(targetBuildTask)
         }
+    }
+
+    private fun overrides(
+        providers: ProviderFactory,
+        toolchainTarget: String,
+    ): Map<String, String> {
+        val gradlePropPrefix = "RUST_ANDROID_GRADLE_TARGET_${toolchainTarget}_"
+        val envVarPrefix = "ORG_GRADLE_PROJECT_${gradlePropPrefix}"
+
+        val gradlePropOverrides =
+            providers.gradlePropertiesPrefixedBy(gradlePropPrefix).get().mapKeys { (key, _)
+                -> // Remove the prefix
+                key.substring(gradlePropPrefix.length)
+            }
+
+        val envVarOverrides =
+            providers.environmentVariablesPrefixedBy(gradlePropPrefix).get().mapKeys { (key, _) ->
+                key.substring(envVarPrefix.length)
+            }
+
+        return gradlePropOverrides + envVarOverrides
     }
 }
