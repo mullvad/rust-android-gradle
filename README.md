@@ -450,23 +450,23 @@ and builds will likely fail.)
 
 ## Passing arguments to cargo
 
-The plugin passes project properties named like `RUST_ANDROID_GRADLE_target_..._KEY=VALUE` through
+The plugin passes project properties named like `RUST_ANDROID_GRADLE_TARGET_..._KEY=VALUE` through
 to the Cargo invocation for the given Rust `target` as `KEY=VALUE`.  Target should be upper-case
 with "-" replaced by "_".  (See [the links from this Cargo issue](https://github.com/rust-lang/cargo/issues/5690).) So, for example,
 
-```groovy
-project.RUST_ANDROID_GRADLE_I686_LINUX_ANDROID_FOO=BAR
 ```
-and
-```shell
-./gradlew -PRUST_ANDROID_GRADLE_ARMV7_LINUX_ANDROIDEABI_FOO=BAR ...
+RUST_ANDROID_GRADLE_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS=-Zcodegen-backend=cranelift
 ```
 and
 ```
-env ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_ARMV7_LINUX_ANDROIDEABI_FOO=BAR ./gradlew ...
+./gradlew -PRUST_ANDROID_GRADLE_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS=-Zcodegen-backend=cranelift ...
 ```
-all set `FOO=BAR` in the `cargo` execution environment (for the "armv7-linux-androideabi` Rust
-target, corresponding to the "x86" target in the plugin).
+and
+```
+env ORG_GRADLE_PROJECT_RUST_ANDROID_GRADLE_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS=-Zcodegen-backend=cranelift ./gradlew ...
+```
+all set `RUSTFLAGS` to `-Zcodegen-backend=cranelift` in the `cargo` execution environment (for the "armv7-linux-androideabi` Rust
+target, corresponding to the "arm" target in the plugin).
 
 # Development
 
