@@ -1,4 +1,4 @@
-# Unreleased
+# 0.11.1
 
 - Fix a bug where cargo arguments set using the RUST_ANDROID_GRADLE properties where not being applied.
 
