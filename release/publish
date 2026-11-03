@@ -14,8 +14,7 @@ podman run --rm -it \
   ghcr.io/mullvad/mullvadvpn-app-build-android:c7f3b549dd bash -c "
 
 apt update
-apt install -y scdaemon pcscd
-service pcscd start
+apt install -y scdaemon
 gpg --import /build/release/android-signing-key.pub
 echo -e 'trust\n5\ny\nsave' | gpg --command-fd 0 --edit-key 234B5F5BB6811BE0
 echo ''
