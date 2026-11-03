@@ -11,7 +11,7 @@ podman run --rm -it \
   --device $SIGNING_KEY_PATH:$SIGNING_KEY_PATH \
   -v $REPO_DIR:/build:Z \
   -v ~/.gradle/gradle.properties:/root/.gradle/gradle.properties:ro,Z \
-  ghcr.io/mullvad/mullvadvpn-app-build-android:c7f3b549dd bash -c "
+  ghcr.io/mullvad/mullvadvpn-app-build-android@sha256:a4085bc5e3efd16a48bd252b13977562f0bfdf2d8bb2d18580dfc97f9f6deffc bash -c "
 
 apt update
 apt install -y scdaemon
