@@ -394,23 +394,14 @@ rust.targets.library=linux-x86-64
 rust.targets=arm,linux-x86-64,darwin
 ```
 
-## Specifying paths to sub-commands (Cargo, and Rustc)
+## Specifying paths to sub-command (Cargo)
 
-The plugin invokes Cargo and Rustc.  In order of preference, the plugin determines what command to invoke for Cargo by:
+The plugin invokes Cargo. In order of preference, the plugin determines what command to invoke for Cargo by:
 
 1. the value of `cargo { cargoCommand = "..." }`, if non-empty
 1. `rust.cargoCommand` in `${rootDir}/local.properties`
 1. the environment variable `RUST_ANDROID_GRADLE_CARGO_COMMAND`
 1. the default, `cargo`
-
-In order of preference, the plugin determines what command to invoke for `rustc` by:
-
-1. the value of `cargo { rustcCommand = "..." }`, if non-empty
-1. `rust.rustcCommand` in `${rootDir}/local.properties`
-1. the environment variable `RUST_ANDROID_GRADLE_RUSTC_COMMAND`
-1. the default, `rustc`
-
-(Note that failure to locate `rustc` is not fatal, however it may result in rebuilding the code more often than is necessary).
 
 Paths must be host operating system specific.  For example, on Windows:
 

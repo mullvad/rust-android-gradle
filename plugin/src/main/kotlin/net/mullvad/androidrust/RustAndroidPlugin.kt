@@ -307,7 +307,6 @@ open class RustAndroidPlugin : Plugin<Project> {
                                 overrides(providers, toolchainTarget)
                         )
 
-                        rustcCommand.set(cargoExtension.rustcCommand)
                         cargoCommand.set(cargoExtension.cargoCommand)
                         profile.set(cargoExtension.profile)
                         targetIncludes.set(cargoExtension.targetIncludes?.toList())
