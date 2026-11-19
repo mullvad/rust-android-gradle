@@ -72,7 +72,7 @@ abstract class CargoBuildTask : DefaultTask() {
         val toolchain by toolchain
         val ndk by ndk
 
-        val moduleDirectory = resolveModuleDirectory()
+        val moduleDirectory = projectProjectDir.get().resolve(module.get()).canonicalFile
 
         val defaultTargetTriple =
             getDefaultTargetTriple(
@@ -82,18 +82,13 @@ abstract class CargoBuildTask : DefaultTask() {
 
         buildProjectForTarget(defaultTargetTriple, toolchain, ndk, moduleDirectory)
 
-        var cargoOutputDir =
-            File(
-                if (toolchain.target == defaultTargetTriple) {
-                    "${target.get()}/${profile.get()}"
-                } else {
-                    "${target.get()}/${toolchain.target}/${profile.get()}"
-                }
-            )
-        if (!cargoOutputDir.isAbsolute) {
-            cargoOutputDir = File(projectProjectDir.get(), cargoOutputDir.path)
-        }
-        cargoOutputDir = cargoOutputDir.canonicalFile
+        val cargoOutputDir =
+            projectProjectDir
+                .get()
+                .resolve(target.get())
+                .letIf(toolchain.target != defaultTargetTriple) { it.resolve(toolchain.target) }
+                .resolve(profile.get())
+                .canonicalFile
 
         val buildDir by projectLayout.buildDirectory.asFile
         val intoDir = File(buildDir, "rustJniLibs/${toolchain.folder}")
@@ -119,18 +114,7 @@ abstract class CargoBuildTask : DefaultTask() {
         }
     }
 
-    private fun resolveModuleDirectory(): File {
-        val module = File(module.get())
-        val modulePath =
-            if (module.isAbsolute) {
-                module
-            } else {
-                File(projectProjectDir.get(), module.path)
-            }
-        return modulePath.canonicalFile
-    }
-
-    private fun buildProjectForTarget(
+    fun buildProjectForTarget(
         defaultTargetTriple: String?,
         toolchain: Toolchain,
         ndk: Ndk,
