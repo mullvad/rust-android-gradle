@@ -182,7 +182,7 @@ abstract class CargoBuildTask : DefaultTask() {
 
         if (triple == null) {
             task.logger.warn(
-                "Failed to parse `cargo -Vv` output! (Please report a rust-android-gradle bug)"
+                "Failed to parse `cargo -vV` output! (Please report a rust-android-gradle bug)"
             )
         } else {
             task.logger.info("Default rust target triple: $triple")
