@@ -5,7 +5,6 @@ import java.io.File
 import javax.inject.Inject
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.LogLevel
@@ -77,10 +76,10 @@ abstract class CargoBuildTask : DefaultTask() {
 
         val defaultTargetTriple =
             getDefaultTargetTriple(
-                this@CargoBuildTask,
                 execOperations,
                 moduleDirectory,
             )
+
         buildProjectForTarget(defaultTargetTriple, toolchain, ndk, moduleDirectory)
 
         var cargoOutputDir =
@@ -131,7 +130,7 @@ abstract class CargoBuildTask : DefaultTask() {
         return modulePath.canonicalFile
     }
 
-    private fun CargoBuildTask.buildProjectForTarget(
+    private fun buildProjectForTarget(
         defaultTargetTriple: String?,
         toolchain: Toolchain,
         ndk: Ndk,
@@ -152,7 +151,6 @@ abstract class CargoBuildTask : DefaultTask() {
     }
 
     private fun getDefaultTargetTriple(
-        task: Task,
         execOperations: ExecOperations,
         workingDir: File,
     ): String? {
@@ -164,7 +162,7 @@ abstract class CargoBuildTask : DefaultTask() {
             spec.commandLine = buildCargoCommand { add("-vV") }
         }
         if (result.exitValue != 0) {
-            task.logger.warn(
+            logger.warn(
                 "Failed to get default target triple from cargo (exit code: ${result.exitValue})"
             )
             return null
@@ -181,13 +179,12 @@ abstract class CargoBuildTask : DefaultTask() {
                 .find { it.startsWith(triplePrefix) }
                 ?.substring(triplePrefix.length)
                 ?.trim()
+                ?.also { logger.info("Default rust target triple: $it") }
 
         if (triple == null) {
-            task.logger.warn(
+            logger.warn(
                 "Failed to parse `cargo -vV` output! (Please report a rust-android-gradle bug)"
             )
-        } else {
-            task.logger.info("Default rust target triple: $triple")
         }
         return triple
     }
