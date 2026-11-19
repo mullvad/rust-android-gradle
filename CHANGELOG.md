@@ -1,4 +1,4 @@
-# Unreleased
+# 0.12.0
 
 - Remove `rustcCommand` option. This was used to get the host triple, it is now replaced with using
  `cargo` to retrieve this value instead.
