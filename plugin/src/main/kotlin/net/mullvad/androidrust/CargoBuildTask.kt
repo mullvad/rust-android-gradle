@@ -63,6 +63,7 @@ abstract class CargoBuildTask : DefaultTask() {
     @get:Inject abstract val projectLayout: ProjectLayout
 
     @get:Inject abstract val execOperations: ExecOperations
+
     @get:Inject abstract val fs: FileSystemOperations
 
     @Suppress("unused")
@@ -71,8 +72,15 @@ abstract class CargoBuildTask : DefaultTask() {
         val toolchain by toolchain
         val ndk by ndk
 
+        val moduleDirectory = resolveModuleDirectory()
+
         val defaultTargetTriple =
-            getDefaultTargetTriple(this@CargoBuildTask, execOperations, cargoCommand.get())
+            getDefaultTargetTriple(
+                this@CargoBuildTask,
+                execOperations,
+                cargoCommand.get(),
+                moduleDirectory,
+            )
         buildProjectForTarget(defaultTargetTriple, toolchain, ndk, projectProjectDir.get())
 
         var cargoOutputDir =
@@ -112,25 +120,27 @@ abstract class CargoBuildTask : DefaultTask() {
         }
     }
 
+    private fun resolveModuleDirectory(): File {
+        val module = File(module.get())
+        return (if (module.isAbsolute) {
+                module
+            } else {
+                File(projectProjectDir.get(), module.path)
+            })
+            .canonicalFile
+    }
+
     private fun CargoBuildTask.buildProjectForTarget(
         defaultTargetTriple: String?,
         toolchain: Toolchain,
         ndk: Ndk,
-        projectProjectDir: File,
+        moduleDirectory: File,
     ) {
         execOperations
             .exec { spec ->
                 with(spec) {
                     standardOutput = System.out
-                    val module = File(module.get())
-
-                    workingDir =
-                        if (module.isAbsolute) {
-                                module
-                            } else {
-                                File(projectProjectDir, module.path)
-                            }
-                            .canonicalFile
+                    workingDir = moduleDirectory
 
                     val theCommandLine = mutableListOf(cargoCommand.get())
 
@@ -267,10 +277,12 @@ private fun getDefaultTargetTriple(
     task: Task,
     execOperations: ExecOperations,
     cargo: String,
+    workingDir: File,
 ): String? {
     val stdout = ByteArrayOutputStream()
     val result = execOperations.exec { spec ->
         spec.standardOutput = stdout
+        spec.workingDir = workingDir
         spec.commandLine = listOf(cargo, "-vV")
     }
     if (result.exitValue != 0) {
