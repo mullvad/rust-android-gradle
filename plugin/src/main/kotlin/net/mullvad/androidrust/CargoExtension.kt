@@ -92,16 +92,6 @@ open class CargoExtension {
                 true,
             )
 
-    // Required so that we can parse the default triple out of `rustc --version --verbose`. Sadly,
-    // there seems to be no way to get this information out of cargo directly. Failure to locate
-    // this isn't fatal, however.
-    var rustcCommand: String = ""
-        get() {
-            return field.ifEmpty {
-                getProperty("rust.rustcCommand", "RUST_ANDROID_GRADLE_RUSTC_COMMAND") ?: "rustc"
-            }
-        }
-
     fun getFlagProperty(camelCaseName: String, snakeCaseName: String, ifUnset: Boolean): Boolean {
         val propVal = getProperty(camelCaseName, snakeCaseName)
         if (propVal == "1" || propVal == "true") {

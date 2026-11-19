@@ -30,8 +30,6 @@ abstract class CargoBuildTask : DefaultTask() {
 
     @Input val target = property<String>()
 
-    @Input val rustcCommand = property<String>()
-
     @Input val cargoCommand = property<String>()
 
     @Input val profile = property<String>()
@@ -74,7 +72,7 @@ abstract class CargoBuildTask : DefaultTask() {
         val ndk by ndk
 
         val defaultTargetTriple =
-            getDefaultTargetTriple(this@CargoBuildTask, execOperations, rustcCommand.get())
+            getDefaultTargetTriple(this@CargoBuildTask, execOperations, cargoCommand.get())
         buildProjectForTarget(defaultTargetTriple, toolchain, ndk, projectProjectDir.get())
 
         var cargoOutputDir =
@@ -268,22 +266,22 @@ abstract class CargoBuildTask : DefaultTask() {
 private fun getDefaultTargetTriple(
     task: Task,
     execOperations: ExecOperations,
-    rustc: String,
+    cargo: String,
 ): String? {
     val stdout = ByteArrayOutputStream()
     val result = execOperations.exec { spec ->
         spec.standardOutput = stdout
-        spec.commandLine = listOf(rustc, "--version", "--verbose")
+        spec.commandLine = listOf(cargo, "-vV")
     }
     if (result.exitValue != 0) {
         task.logger.warn(
-            "Failed to get default target triple from rustc (exit code: ${result.exitValue})"
+            "Failed to get default target triple from cargo (exit code: ${result.exitValue})"
         )
         return null
     }
     val output = stdout.toString()
 
-    // The `rustc --version --verbose` output contains a number of lines like `key: value`.
+    // The `cargo -vV` output contains a number of lines like `key: value`.
     // We're only interested in `host: `, which corresponds to the default target triple.
     val triplePrefix = "host: "
 
@@ -296,7 +294,7 @@ private fun getDefaultTargetTriple(
 
     if (triple == null) {
         task.logger.warn(
-            "Failed to parse `rustc -Vv` output! (Please report a rust-android-gradle bug)"
+            "Failed to parse `cargo -Vv` output! (Please report a rust-android-gradle bug)"
         )
     } else {
         task.logger.info("Default rust target triple: $triple")
