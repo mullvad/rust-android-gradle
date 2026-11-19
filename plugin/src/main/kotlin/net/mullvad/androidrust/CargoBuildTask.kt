@@ -81,7 +81,7 @@ abstract class CargoBuildTask : DefaultTask() {
                 cargoCommand.get(),
                 moduleDirectory,
             )
-        buildProjectForTarget(defaultTargetTriple, toolchain, ndk, projectProjectDir.get())
+        buildProjectForTarget(defaultTargetTriple, toolchain, ndk, moduleDirectory)
 
         var cargoOutputDir =
             File(
