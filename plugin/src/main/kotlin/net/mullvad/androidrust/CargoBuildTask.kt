@@ -23,49 +23,76 @@ import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "Cargo inputs are not fully modeled as task inputs")
 abstract class CargoBuildTask : DefaultTask() {
-    @Input val toolchain = property<Toolchain>()
+    @Input
+    val toolchain = property<Toolchain>()
 
-    @Input val ndk = property<Ndk>()
+    @Input
+    val ndk = property<Ndk>()
 
-    @Input val projectProjectDir = property<File>()
+    @Input
+    val projectProjectDir = property<File>()
 
-    @Input val target = property<String>()
+    @Input
+    val target = property<String>()
 
-    @Input val cargoCommand = property<String>()
+    @Input
+    val cargoCommand = property<String>()
 
-    @Input val profile = property<String>()
+    @Input
+    val profile = property<String>()
 
-    @Input @Optional val targetIncludes = listProperty<String>()
+    @Input
+    @Optional
+    val targetIncludes = listProperty<String>()
 
-    @Input @Optional val targetRenames = mapProperty<String, String>()
+    @Input
+    @Optional
+    val targetRenames = mapProperty<String, String>()
 
-    @Input val libname = property<String>()
+    @Input
+    val libname = property<String>()
 
-    @Input val apiLevel = property<Int>()
+    @Input
+    val apiLevel = property<Int>()
 
-    @Input val module = property<String>()
+    @Input
+    val module = property<String>()
 
-    @Input @Optional val rustupChannel = property<String>()
+    @Input
+    @Optional
+    val rustupChannel = property<String>()
 
-    @Input @Optional val verbose = property<Boolean>()
+    @Input
+    @Optional
+    val verbose = property<Boolean>()
 
-    @Input val featureSpec = property<FeatureSpec>()
+    @Input
+    val featureSpec = property<FeatureSpec>()
 
-    @Input val toolchainDirectory = property<File>()
+    @Input
+    val toolchainDirectory = property<File>()
 
-    @Input val generateBuildId = property<Boolean>()
+    @Input
+    val generateBuildId = property<Boolean>()
 
-    @Input val autoConfigureClangSys = property<Boolean>()
+    @Input
+    val autoConfigureClangSys = property<Boolean>()
 
-    @Input @Optional val extraCargoBuildArguments = listProperty<String>()
+    @Input
+    @Optional
+    val extraCargoBuildArguments = listProperty<String>()
 
-    @Input val environmentOverrides = mapProperty<String, String>()
+    @Input
+    val environmentOverrides = mapProperty<String, String>()
 
-    @get:Inject abstract val projectLayout: ProjectLayout
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
 
-    @get:Inject abstract val execOperations: ExecOperations
+    @get:Inject
+    abstract val execOperations: ExecOperations
 
-    @get:Inject abstract val fs: FileSystemOperations
+    @get:Inject
+    abstract val fs: FileSystemOperations
 
     @Suppress("unused")
     @TaskAction
@@ -123,10 +150,10 @@ abstract class CargoBuildTask : DefaultTask() {
     private fun resolveModuleDirectory(): File {
         val module = File(module.get())
         return (if (module.isAbsolute) {
-                module
-            } else {
-                File(projectProjectDir.get(), module.path)
-            })
+            module
+        } else {
+            File(projectProjectDir.get(), module.path)
+        })
             .canonicalFile
     }
 
@@ -159,6 +186,7 @@ abstract class CargoBuildTask : DefaultTask() {
         val result = execOperations.exec { spec ->
             spec.standardOutput = stdout
             spec.workingDir = workingDir
+            spec.environment(environmentOverrides.get())
             spec.commandLine = buildCargoCommand { add("-vV") }
         }
         if (result.exitValue != 0) {
@@ -277,9 +305,9 @@ abstract class CargoBuildTask : DefaultTask() {
             val cxx = File(toolchainDirectory, "${toolchain.cxx(apiLevel.get())}").path
             val ar =
                 File(
-                        toolchainDirectory,
-                        "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
-                    )
+                    toolchainDirectory,
+                    "${toolchain.ar(apiLevel.get(), ndkVersionMajor)}",
+                )
                     .path
 
             environment("CARGO_TARGET_${toolchainTarget}_LINKER", cc)
