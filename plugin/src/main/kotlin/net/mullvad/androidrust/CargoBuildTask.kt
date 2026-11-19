@@ -149,12 +149,12 @@ abstract class CargoBuildTask : DefaultTask() {
 
     private fun resolveModuleDirectory(): File {
         val module = File(module.get())
-        return (if (module.isAbsolute) {
+        val modulePath = if (module.isAbsolute) {
             module
         } else {
             File(projectProjectDir.get(), module.path)
-        })
-            .canonicalFile
+        }
+        return modulePath.canonicalFile
     }
 
     private fun CargoBuildTask.buildProjectForTarget(
