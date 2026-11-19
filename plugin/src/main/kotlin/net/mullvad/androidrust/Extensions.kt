@@ -43,3 +43,6 @@ inline fun <reified T : Any, reified R : Any> DefaultTask.mapProperty(): MapProp
 
 fun CharSequence.capitalized() =
     toString().replaceFirstChar { if (it.isLowerCase()) it.uppercase() else it.toString() }
+
+inline fun <T> T.letIf(condition: Boolean, block: (T) -> T): T =
+    if (condition) block(this) else this
