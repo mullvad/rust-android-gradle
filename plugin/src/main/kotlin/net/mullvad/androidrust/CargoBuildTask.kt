@@ -144,6 +144,7 @@ abstract class CargoBuildTask : DefaultTask() {
             spec.workingDir = workingDir
             spec.environment(environmentOverrides.get())
             spec.commandLine = buildCargoCommand { add("-vV") }
+            spec.isIgnoreExitValue = true
         }
         if (result.exitValue != 0) {
             logger.warn(
